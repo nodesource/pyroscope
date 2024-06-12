@@ -1,0 +1,23 @@
+{
+  "name": "public",
+  "packageManager": "yarn@4.3.0",
+  "module": "dist/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-web": "webpack",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel app --extensions \".ts,.tsx\" --source-maps inline --out-dir dist"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.24.7",
+    "@babel/core": "^7.24.7",
+    "@babel/node": "^7.24.7",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "babel-plugin-transform-scss": "^1.2.0",
+    "typescript": "^5.4.5"
+  }
+}
