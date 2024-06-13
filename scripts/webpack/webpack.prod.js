@@ -3,8 +3,8 @@ const path = require('path');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
-  mode: 'production',
-  devtool: 'source-map',
+  mode: 'none', // No minificación
+  devtool: 'source-map', // Agregar sourcemaps
   output: {
     clean: true,
     path: path.resolve(__dirname, '../../dist/esm'),

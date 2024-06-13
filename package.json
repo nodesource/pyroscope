@@ -1,17 +1,15 @@
 {
-  "name": "NS-Pyroscope",
+  "name": "a-ns-pyroscope",
   "version": "2.0.0",
   "repository": "git@github.com:nodesource/pyroscope.git",
   "author": "NodeSource",
   "license": "AGPL-3.0-only",
   "private": false,
-  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": "./dist/esm/index.js"
     }
   },
   "files": [
@@ -20,9 +18,7 @@
   "scripts": {
     "test": "jest",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "build:cjs": "webpack --config scripts/webpack/webpack.prod.cjs.js",
-    "build:esm": "webpack --config scripts/webpack/webpack.prod.js",
-    "build": "yarn build:cjs && yarn build:esm",
+    "build": "webpack --config scripts/webpack/webpack.prod.js",
     "dev": "NODE_ENV=development webpack serve --progress --color --config scripts/webpack/webpack.dev.js",
     "backend:dev": "make build run 'PARAMS=--config.file ./cmd/pyroscope/pyroscope.yaml'",
     "cy": "cypress",
@@ -40,7 +36,8 @@
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-dom": ">=17.0.0",
-    "redux": ">=7.0.0"
+    "react-redux": ">=7.0.0",
+    "@reduxjs/toolkit": ">=1.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
@@ -144,7 +141,8 @@
     "webpack-merge": "^5.8.0",
     "react-redux": "^7.2.1",
     "react-dom": "^18.2.0",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "@reduxjs/toolkit": "^1.6.2"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "~1.2.30",
@@ -161,7 +159,6 @@
     "@mui/types": "7.2.0",
     "@react-hook/resize-observer": "^1.2.6",
     "@react-hook/window-size": "^3.1.1",
-    "@reduxjs/toolkit": "^1.6.2",
     "@szhsin/react-menu": "3.5.2",
     "@types/file-saver": "^2.0.5",
     "color": "^3.1.3",

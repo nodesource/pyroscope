@@ -17,11 +17,12 @@ module.exports = {
       '@emotion/react': require.resolve('@emotion/react'),
     },
   },
-  // externals: {
-  //   react: 'react',
-  //   'react-dom': 'react-dom',
-  //   redux: 'redux',
-  // },
+  externals: {
+    // react: 'react',
+    'react-dom': 'react-dom',
+    'react-redux': 'react-redux',
+    '@reduxjs/toolkit': '@reduxjs/toolkit',
+  },
   ignoreWarnings: [/export .* was not found in/],
   stats: {
     children: false,
@@ -42,7 +43,7 @@ module.exports = {
   ],
   module: {
     rules: [
-      // CSS
+      // CSS y SCSS
       {
         test: /\.(css|scss)$/,
         use: [

@@ -1,6 +1,7 @@
 import React from 'react';
-// import ContinuousSingleView from '@pyroscope/pages/ContinuousSingleView';
+import ContinuousSingleView from '@pyroscope/pages/ContinuousSingleView';
 
 export function SingleView() {
-  return <div>peryscope</div>;
+  // return <ContinuousSingleView />;
+  return <div>this is a test</div>;
 }
