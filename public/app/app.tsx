@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
   window.__grafana_public_path__ = 'assets/grafana/';
 }
 
-function App() {
+export default function App() {
   useSelectFirstApp();
 
   return (

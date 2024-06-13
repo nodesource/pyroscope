@@ -1,44 +1,27 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   target: 'web',
-  entry: {
-    app: './public/app/app.tsx',
-  },
+  entry: './public/app/index.js',
   output: {
-    clean: true,
-    path: path.resolve(__dirname, '../../public/build'),
-    filename: '[name].[contenthash].js',
-    publicPath: '',
+    path: path.resolve(__dirname, '../../dist'),
+    filename: 'index.js',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.es6', '.js', '.json', '.svg'],
     modules: ['node_modules', path.resolve('public')],
-
-    // TODO: unify with tsconfig.json
-    // When using TsconfigPathsPlugin, paths overrides don't work
-    // For example, setting a) '@webapp/*' and  b) '@webapp/components/ExportData'
-    // Would end up ignoring b)
     alias: {
       '@pyroscope': path.resolve(__dirname, '../../public/app'),
-      // some sub-dependencies use a different version of @emotion/react and generate warnings
-      // in the browser about @emotion/react loaded twice. We want to only load it once
       '@emotion/react': require.resolve('@emotion/react'),
-      // Dependencies
-      //...deps,
     },
-    plugins: [
-      // Use same alias from tsconfig.json
-      //      new TsconfigPathsPlugin({
-      //        logLevel: 'info',
-      //        // TODO: figure out why it could not use the baseUrl from tsconfig.json
-      //        baseUrl: path.resolve(__dirname, '../../'),
-      //      }),
-    ],
   },
+  // externals: {
+  //   react: 'react',
+  //   'react-dom': 'react-dom',
+  //   redux: 'redux',
+  // },
   ignoreWarnings: [/export .* was not found in/],
   stats: {
     children: false,
@@ -46,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: '[name].[contenthash].css',
+      filename: 'index.css',
     }),
     new CopyWebpackPlugin({
       patterns: [
@@ -77,7 +60,6 @@ module.exports = {
           },
         ],
       },
-
       {
         test: require.resolve('jquery'),
         loader: 'expose-loader',
@@ -87,8 +69,6 @@ module.exports = {
       },
       {
         test: /\.(js|ts)x?$/,
-        // Ignore everything except pyroscope-oss, since it's used as if it was local code
-        // exclude: /node_modules\/(?!pyroscope-oss).*/,
         use: [
           {
             loader: 'esbuild-loader',
@@ -99,8 +79,6 @@ module.exports = {
           },
         ],
       },
-
-      // SVG
       {
         test: /\.svg$/,
         use: [

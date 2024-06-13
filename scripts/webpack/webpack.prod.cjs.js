@@ -7,15 +7,9 @@ module.exports = merge(common, {
   devtool: 'source-map',
   output: {
     clean: true,
-    path: path.resolve(__dirname, '../../dist/esm'),
+    path: path.resolve(__dirname, '../../dist/cjs'),
     filename: 'index.js',
-    libraryTarget: 'module',
-    module: true,
-    environment: {
-      module: true,
-    },
-  },
-  experiments: {
-    outputModule: true,
+    library: 'NS-Pyroscope',
+    libraryTarget: 'commonjs2',
   },
 });
