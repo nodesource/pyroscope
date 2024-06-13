@@ -6,7 +6,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 module.exports = {
   target: 'web',
   entry: {
-    app: './public/app/app.tsx',
+    app: './public/app/index.tsx',
   },
   output: {
     clean: true,

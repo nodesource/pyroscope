@@ -261,11 +261,11 @@ table {
  * Remove the margin on controls in Safari.
  */
 
-button,
+/* button,
 input,
 select {
   margin: 0;
-}
+} */
 
 /**
  * 1. Show the overflow in IE.

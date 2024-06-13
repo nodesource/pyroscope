@@ -16,11 +16,9 @@ import { faShareSquare } from '@fortawesome/free-solid-svg-icons/faShareSquare';
 import { Field, Message } from 'protobufjs/light';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { format } from 'date-fns';
-import { isRouteActive, ROUTES } from '@pyroscope/pages/routes';
 import { Profile } from '@pyroscope/legacy/models';
 import { Tooltip } from '@pyroscope/ui/Tooltip';
 import { useAppDispatch, useAppSelector } from '@pyroscope/redux/hooks';
-import { useLocation } from 'react-router-dom';
 import 'compression-streams-polyfill';
 
 /* eslint-disable react/destructuring-assignment */
@@ -112,23 +110,26 @@ function buildPprofQuery(state: ContinuousState) {
   return PprofRequest.encode(message).finish();
 }
 
+/* NodeSource changes:
+  - The commented code was breaking the render, we don't have routes anymore
+*/
 function ExportData(props: ExportDataProps) {
   const { exportJSON = false, exportFlamegraphDotCom = true } = props;
   let { exportPprof } = props;
   const exportPNG = true;
   const exportHTML = false;
-  const { pathname } = useLocation();
+  // const { pathname } = useLocation();
   const dispatch = useAppDispatch();
   const pprofQuery = useAppSelector((state: { continuous: ContinuousState }) =>
     buildPprofQuery(state.continuous)
   );
 
-  if (
-    isRouteActive(pathname, ROUTES.COMPARISON_DIFF_VIEW) ||
-    isRouteActive(pathname, ROUTES.COMPARISON_VIEW)
-  ) {
-    exportPprof = false;
-  }
+  // if (
+  //   isRouteActive(pathname, ROUTES.COMPARISON_DIFF_VIEW) ||
+  //   isRouteActive(pathname, ROUTES.COMPARISON_VIEW)
+  // ) {
+  //   exportPprof = false;
+  // }
   if (
     !exportPNG &&
     !exportJSON &&
@@ -172,37 +173,37 @@ function ExportData(props: ExportDataProps) {
     }
   };
 
-  const downloadPNG = async () => {
-    if (exportPNG) {
-      const { flamebearer } = props;
+  // const downloadPNG = async () => {
+  //   if (exportPNG) {
+  //     const { flamebearer } = props;
 
-      const defaultExportName = getFilename(
-        flamebearer.metadata.appName,
-        flamebearer.metadata.startTime,
-        flamebearer.metadata.endTime
-      );
-      // get user input from modal
-      const customExportName = await getCustomExportName(defaultExportName);
-      // return if user cancels the modal
-      if (!customExportName) {
-        return;
-      }
+  //     const defaultExportName = getFilename(
+  //       flamebearer.metadata.appName,
+  //       flamebearer.metadata.startTime,
+  //       flamebearer.metadata.endTime
+  //     );
+  //     // get user input from modal
+  //     const customExportName = await getCustomExportName(defaultExportName);
+  //     // return if user cancels the modal
+  //     if (!customExportName) {
+  //       return;
+  //     }
 
-      const filename = `${customExportName}.png`;
+  //     const filename = `${customExportName}.png`;
 
-      // TODO use ref
-      // this won't work for comparison side by side
-      const canvasElement = document.querySelector(
-        '.flamegraph-canvas'
-      ) as HTMLCanvasElement;
-      canvasElement.toBlob(function (blob) {
-        if (!blob) {
-          return;
-        }
-        saveAs(blob, filename);
-      });
-    }
-  };
+  //     // TODO use ref
+  //     // this won't work for comparison side by side
+  //     const canvasElement = document.querySelector(
+  //       '.flamegraph-canvas'
+  //     ) as HTMLCanvasElement;
+  //     canvasElement.toBlob(function (blob) {
+  //       if (!blob) {
+  //         return;
+  //       }
+  //       saveAs(blob, filename);
+  //     });
+  //   }
+  // };
 
   const handleToggleMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -273,7 +274,7 @@ function ExportData(props: ExportDataProps) {
           </Tooltip>
         )}
         <div className={toggleMenu ? styles.menuShow : styles.menuHide}>
-          {exportPNG && (
+          {/* {exportPNG && (
             <button
               className={styles.dropdownMenuItem}
               onClick={downloadPNG}
@@ -282,7 +283,7 @@ function ExportData(props: ExportDataProps) {
             >
               png
             </button>
-          )}
+          )} */}
           {exportJSON && (
             <button
               className={styles.dropdownMenuItem}

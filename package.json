@@ -1,14 +1,30 @@
 {
-  "name": "grafana-pyroscope",
-  "version": "2.0.0",
-  "repository": "git@github.com:grafana/pyroscope.git",
-  "author": "Grafana Labs",
+  "name": "@ns-private/pyroscope",
+  "version": "1.0.0",
+  "repository": "git@github.com:nodesource/pyroscope.git",
+  "author": "NodeSource",
   "license": "AGPL-3.0-only",
-  "private": true,
+  "module": "dist/esm/index.js.mjs",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "registry": "http://packages-internal.nodesource.io"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js.mjs"
+    },
+    "./dist/style.css": "./dist/esm/style.css"
+
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "jest",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "build": "NODE_ENV=production webpack --progress --config scripts/webpack/webpack.prod.js",
+    "build": "vite build --config ./scripts/webpack/vite.config.mjs",
+    "prepublishOnly": "yarn build",
+    "dev": "NODE_ENV=development webpack serve --progress --color --config scripts/webpack/webpack.dev.js",
     "backend:dev": "make build run 'PARAMS=--config.file ./cmd/pyroscope/pyroscope.yaml'",
     "cy": "cypress",
     "lint": "eslint . --ext .js,.tsx,.ts --cache",
@@ -20,12 +36,19 @@
   "lint-staged": {
     "*.{ts,tsx,scss}": "yarn format:fix"
   },
+  "peerDependencies": {
+    "@reduxjs/toolkit": ">=1.6.2",
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0",
+    "react-redux": ">=7.0.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.22.9",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@fortawesome/fontawesome-common-types": "~0.2.36",
     "@grafana/eslint-config": "^6.0.0",
+    "@reduxjs/toolkit": "^1.6.2",
     "@size-limit/file": "^6.0.3",
     "@size-limit/time": "^6.0.3",
     "@swc/core": "^1.3.74",
@@ -95,6 +118,9 @@
     "mini-css-extract-plugin": "^2.7.5",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "prettier": "2.8.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^7.2.1",
     "react-svg-loader": "^3.0.3",
     "regenerator-runtime": "^0.13.9",
     "replace-in-file-webpack-plugin": "^1.0.6",
@@ -104,6 +130,11 @@
     "tsconfig-paths-webpack-plugin": "^4.0.1",
     "typescript": "^4.5.2",
     "typescript-plugin-css-modules": "^3.4.0",
+    "vite-plugin-css-injected-by-js": "^3.5.1",
+    "vite-plugin-libcss": "^1.1.1",
+    "vite-plugin-static-copy": "^1.0.6",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-svg-loader": "^5.1.0",
     "web-streams-polyfill": "^3.2.1",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.0.1",
@@ -123,9 +154,10 @@
     "@mui/material": "5.10.11",
     "@react-hook/resize-observer": "^1.2.6",
     "@react-hook/window-size": "^3.1.1",
-    "@reduxjs/toolkit": "^1.6.2",
     "@szhsin/react-menu": "3.5.2",
     "@types/file-saver": "^2.0.5",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-swc": "^3.7.0",
     "color": "^3.1.3",
     "compression-streams-polyfill": "^0.1.4",
     "css-loader": "^4.0.0",
@@ -139,11 +171,9 @@
     "lodash.map": "^4.6.0",
     "prismjs": "^1.27.0",
     "protobufjs": "^7.2.5",
-    "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.0.4",
     "react-datepicker": "^4.7.0",
     "react-debounce-input": "^3.2.5",
-    "react-dom": "^18.2.0",
     "react-dropzone": "^11.4.2",
     "react-flatten-children": "^1.1.2",
     "react-flot": "^1.3.0",
@@ -152,19 +182,21 @@
     "react-notifications-component": "~3.1.0",
     "react-outside-click-handler": "^1.3.0",
     "react-pro-sidebar": "^0.7.1",
-    "react-redux": "^7.2.1",
     "react-router-dom": "5.3.0",
     "react-svg-spinner": "^1.0.4",
     "react-textarea-autosize": "8.3.0",
     "redux-persist": "^6.0.0",
     "redux-query-sync": "^0.1.10",
+    "rollup-plugin-copy": "^3.5.0",
     "sass-loader": "^9.0.2",
+    "style-loader": "^4.0.0",
     "sweetalert2": "^11.4.0, <11.4.9",
     "sweetalert2-react-content": "^4.2.0",
     "timezone-mock": "^1.3.0",
     "true-myth": "~5.2.0",
     "ts-custom-error": "^3.2.0",
     "ts-essentials": "^9.0.0",
+    "vite": "^5.3.4",
     "zod": "^3.22.3"
   },
   "optionalDependencies": {

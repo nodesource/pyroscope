@@ -6,12 +6,17 @@
 @use 'components/tagsbar';
 @use 'components/button';
 
-@import './reset.scss';
+// @import './reset.scss';
 @import 'common.scss';
 @import 'login.scss';
 
 //global color variables
 @import './variables.css';
+
+#child-app-container {
+  @import './sanitize.css/sanitize';
+  @import './sanitize.css/forms';
+}
 
 html {
   width: 100vw;
@@ -22,12 +27,18 @@ a {
 }
 
 body {
-  font: 400 16px/1.7 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica,
-    Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-
+  // font: 400 16px/1.7 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica,
+  //   Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
   background-color: var(--ps-ui-background);
+  font-family: 'Source Sans Pro' !important;
   color: var(--ps-neutral-2);
-  -webkit-font-smoothing: antialiased;
+  // -webkit-font-smoothing: antialiased;
+}
+
+button {
+  background-color: var(--ps-ui-background);
+  font-family: 'Source Sans Pro' !important;
+  color: var(--ps-neutral-2);
 }
 
 .logo-main {

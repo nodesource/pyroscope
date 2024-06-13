@@ -38,22 +38,11 @@ interface RenderSingleProps {
   refreshToken?: string;
   maxNodes: string | number;
 }
-export async function renderSingle(
-  props: RenderSingleProps,
-  controller?: {
-    signal?: AbortSignal;
-  }
+export async function renderSingle(data: any
 ): Promise<Result<RenderOutput, RequestError | ZodError>> {
-  const url = buildRenderURL(props);
-  // TODO
-  const response = await request(`/pyroscope${url}&format=json`, {
-    signal: controller?.signal,
-  });
-
-  if (response.isErr) {
-    return Result.err<RenderOutput, RequestError>(response.error);
-  }
-
+  /* NodeSource changes:
+    - modified function to receive the data directly as a prop
+  */
   const parsed = FlamebearerProfileSchema.merge(
     z.object({
       timeline: TimelineSchema,
@@ -61,7 +50,7 @@ export async function renderSingle(
     })
   )
     .merge(z.object({ telemetry: z.object({}).passthrough().optional() }))
-    .safeParse(response.value);
+    .safeParse(data);
 
   if (parsed.success) {
     // TODO: strip timeline
