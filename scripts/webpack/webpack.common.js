@@ -18,7 +18,7 @@ module.exports = {
     },
   },
   externals: {
-    // react: 'react',
+    react: 'react',
     'react-dom': 'react-dom',
     'react-redux': 'react-redux',
     '@reduxjs/toolkit': '@reduxjs/toolkit',
@@ -30,7 +30,8 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'index.css',
+    //   filename: 'index.css',
+      experimentalUseImportModule: false
     }),
     new CopyWebpackPlugin({
       patterns: [
