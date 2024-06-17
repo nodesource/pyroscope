@@ -3,8 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  target: 'web',
-  entry: './public/app/index.js',
+  entry: './public/app/index.tsx',
   output: {
     path: path.resolve(__dirname, '../../dist'),
     filename: 'index.js',
@@ -20,8 +19,8 @@ module.exports = {
   externals: {
     react: 'react',
     'react-dom': 'react-dom',
-    'react-redux': 'react-redux',
-    '@reduxjs/toolkit': '@reduxjs/toolkit',
+    // 'react-redux': 'react-redux',
+    // '@reduxjs/toolkit': '@reduxjs/toolkit',
   },
   ignoreWarnings: [/export .* was not found in/],
   stats: {
@@ -29,10 +28,10 @@ module.exports = {
     source: false,
   },
   plugins: [
-    new MiniCssExtractPlugin({
+    // new MiniCssExtractPlugin({
     //   filename: 'index.css',
-      experimentalUseImportModule: false
-    }),
+    //   experimentalUseImportModule: false
+    // }),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -48,7 +47,10 @@ module.exports = {
       {
         test: /\.(css|scss)$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          {
+            loader: 'style-loader',
+            options: {},
+          },
           {
             loader: 'css-loader',
             options: {

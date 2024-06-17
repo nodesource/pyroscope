@@ -3,7 +3,7 @@ const path = require('path');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
-  mode: 'none', // No minificación
+  mode: 'development', // No minificación
   devtool: 'source-map', // Agregar sourcemaps
   output: {
     clean: true,

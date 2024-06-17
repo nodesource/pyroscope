@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sidebar } from '@pyroscope/components/Sidebar';
 // import { TenantWall } from '@pyroscope/components/TenantWall';
-// import { useSelectFirstApp } from '@pyroscope/hooks/useAppNames';
+import { useSelectFirstApp } from '@pyroscope/hooks/useAppNames';
 import '@pyroscope/jquery-import';
 // import { ComparisonView } from '@pyroscope/pages/ComparisonView';
 // import { DiffView } from '@pyroscope/pages/DiffView';
@@ -12,16 +12,11 @@ import store from '@pyroscope/redux/store';
 // import Notifications from '@pyroscope/ui/Notifications';
 import { history } from '@pyroscope/util/history';
 import '@szhsin/react-menu/dist/index.css';
-// import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { Route, Router, Switch } from 'react-router-dom';
 import { setupReduxQuerySync } from './redux/useReduxQuerySync';
 import './sass/profile.scss';
-
-// const container = document.getElementById('reactRoot') as HTMLElement;
-// const root = ReactDOM.createRoot(container);
-
-setupReduxQuerySync();
 
 declare global {
   interface Window {
@@ -35,40 +30,30 @@ if (typeof window !== 'undefined') {
 }
 
 export function App() {
-  // useSelectFirstApp();
+  setupReduxQuerySync();
+  useSelectFirstApp();
 
   return (
     <Provider store={store}>
-      <Router history={history}>
-        <div className="app">
-          <Sidebar />
-          <div className="pyroscope-app">
-            {/* <TenantWall> */}
-              <Switch>
-                {/* <Route exact path={ROUTES.EXPLORE_VIEW}>
-                  <ExploreView />
-                </Route> */}
-                <Route exact path={ROUTES.SINGLE_VIEW}>
-                  <SingleView />
-                </Route>
-                {/* <Route path={ROUTES.COMPARISON_VIEW}>
-                  <ComparisonView />
-                </Route> */}
-                {/* <Route path={ROUTES.COMPARISON_DIFF_VIEW}>
-                  <DiffView />
-                </Route> */}
-              </Switch>
-            {/* </TenantWall> */}
-          </div>
-        </div>
-      </Router>
+      <SingleView />
     </Provider>
   );
 }
 
-// root.render(
-//   <Provider store={store}>
-//     <Notifications />
-//     <App />
-//   </Provider>
-// );
+export const IsolatedApp = () => {
+  useEffect(() => {
+    const mountNode = document.getElementById('child-app-container');
+    if (mountNode) {
+      const root = ReactDOM.createRoot(mountNode);
+      root.render(
+        <Provider store={store}>
+          <App />
+        </Provider>
+      );
+    } else {
+      console.error('Target container is not a DOM element.');
+    }
+  }, []);
+
+  return null;
+};
