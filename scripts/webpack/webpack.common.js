@@ -28,6 +28,7 @@ module.exports = {
     source: false,
   },
   plugins: [
+    // the styles are not recognized in the exported plugin
     // new MiniCssExtractPlugin({
     //   filename: 'index.css',
     //   experimentalUseImportModule: false

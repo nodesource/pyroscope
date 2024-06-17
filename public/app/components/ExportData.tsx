@@ -118,18 +118,18 @@ function ExportData(props: ExportDataProps) {
   let { exportPprof } = props;
   const exportPNG = true;
   const exportHTML = false;
-  const { pathname } = useLocation();
+  // const { pathname } = useLocation();
   const dispatch = useAppDispatch();
   const pprofQuery = useAppSelector((state: { continuous: ContinuousState }) =>
     buildPprofQuery(state.continuous)
   );
 
-  if (
-    isRouteActive(pathname, ROUTES.COMPARISON_DIFF_VIEW) ||
-    isRouteActive(pathname, ROUTES.COMPARISON_VIEW)
-  ) {
-    exportPprof = false;
-  }
+  // if (
+  //   isRouteActive(pathname, ROUTES.COMPARISON_DIFF_VIEW) ||
+  //   isRouteActive(pathname, ROUTES.COMPARISON_VIEW)
+  // ) {
+  //   exportPprof = false;
+  // }
   if (
     !exportPNG &&
     !exportJSON &&

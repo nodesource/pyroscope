@@ -8,9 +8,9 @@ let singleViewAbortController: AbortController | undefined;
 
 export const fetchSingleView = createAsyncThunk<
   RenderOutput,
-  null,
+  any,
   { state: { continuous: ContinuousState } }
->('continuous/singleView', async (_, thunkAPI) => {
+>('continuous/singleView', async (data, thunkAPI) => {
   if (singleViewAbortController) {
     singleViewAbortController.abort();
   }
@@ -18,8 +18,10 @@ export const fetchSingleView = createAsyncThunk<
   singleViewAbortController = new AbortController();
   thunkAPI.signal = singleViewAbortController.signal;
 
-  const state = thunkAPI.getState();
-  const res = await renderSingle(state.continuous, singleViewAbortController);
+  // const state = thunkAPI.getState();
+  console.log('thunk', data);
+  const res = await renderSingle(data);
+  console.log(res);
 
   if (res.isOk) {
     return Promise.resolve(res.value);

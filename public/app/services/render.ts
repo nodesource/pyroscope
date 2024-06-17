@@ -15,6 +15,7 @@ import { Timeline, TimelineSchema } from '@pyroscope/models/timeline';
 import { Annotation, AnnotationSchema } from '@pyroscope/models/annotation';
 import type { RequestError } from '@pyroscope/services/base';
 import { request, parseResponse } from '@pyroscope/services/base';
+import resultJson from '../response.json';
 
 export interface RenderOutput {
   profile: Profile;
@@ -38,22 +39,22 @@ interface RenderSingleProps {
   refreshToken?: string;
   maxNodes: string | number;
 }
-export async function renderSingle(
-  props: RenderSingleProps,
-  controller?: {
-    signal?: AbortSignal;
-  }
+export async function renderSingle(data: any
+  // props: RenderSingleProps,
+  // controller?: {
+  //   signal?: AbortSignal;
+  // }
 ): Promise<Result<RenderOutput, RequestError | ZodError>> {
-  const url = buildRenderURL(props);
-  // TODO
-  const response = await request(`/pyroscope${url}&format=json`, {
-    signal: controller?.signal,
-  });
+  // const url = buildRenderURL(props);
+  // // TODO
+  // const response = await request(`/pyroscope${url}&format=json`, {
+  //   signal: controller?.signal,
+  // });
 
-  if (response.isErr) {
-    return Result.err<RenderOutput, RequestError>(response.error);
-  }
-
+  // if (response.isErr) {
+  //   return Result.err<RenderOutput, RequestError>(response.error);
+  // }
+  console.log(data);
   const parsed = FlamebearerProfileSchema.merge(
     z.object({
       timeline: TimelineSchema,
@@ -61,8 +62,8 @@ export async function renderSingle(
     })
   )
     .merge(z.object({ telemetry: z.object({}).passthrough().optional() }))
-    .safeParse(response.value);
-
+    .safeParse(data);
+  console.log(parsed);
   if (parsed.success) {
     // TODO: strip timeline
     const profile = parsed.data;

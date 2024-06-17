@@ -29,25 +29,26 @@ if (typeof window !== 'undefined') {
   window.__grafana_public_path__ = 'assets/grafana/';
 }
 
-export function App() {
+export function App({ data }) {
   // setupReduxQuerySync();
   // useSelectFirstApp();
 
   return (
     <Provider store={store}>
-      <SingleView />
+      <SingleView data={data}/>
     </Provider>
   );
 }
 
-export const IsolatedApp = () => {
+export const IsolatedApp = ({ data }) => {
+
   useEffect(() => {
     const mountNode = document.getElementById('child-app-container');
     if (mountNode) {
       const root = ReactDOM.createRoot(mountNode);
       root.render(
         <Provider store={store}>
-          <App />
+          <App data={data}/>
         </Provider>
       );
     } else {
