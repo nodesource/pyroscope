@@ -30,8 +30,8 @@ if (typeof window !== 'undefined') {
 }
 
 export function App() {
-  setupReduxQuerySync();
-  useSelectFirstApp();
+  // setupReduxQuerySync();
+  // useSelectFirstApp();
 
   return (
     <Provider store={store}>
