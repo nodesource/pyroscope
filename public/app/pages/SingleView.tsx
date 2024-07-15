@@ -1,8 +1,13 @@
 import React from 'react';
 import ContinuousSingleView from '@pyroscope/pages/ContinuousSingleView';
 
-export function SingleView({ data }) {
-  console.log('single view', data);
+/* NodeSource changes:
+  - modified function to receive the data directly as a prop
+*/
+interface SingleViewProps {
+  data: any;
+}
+
+export function SingleView({ data }: SingleViewProps) {
   return <ContinuousSingleView data={data}/>;
-  // return <div>this is a test</div>;
 }

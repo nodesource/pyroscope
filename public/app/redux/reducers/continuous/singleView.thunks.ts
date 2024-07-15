@@ -18,10 +18,10 @@ export const fetchSingleView = createAsyncThunk<
   singleViewAbortController = new AbortController();
   thunkAPI.signal = singleViewAbortController.signal;
 
-  // const state = thunkAPI.getState();
-  console.log('thunk', data);
+  /* NodeSource changes:
+    - modified function to receive the data directly as a prop
+  */
   const res = await renderSingle(data);
-  console.log(res);
 
   if (res.isOk) {
     return Promise.resolve(res.value);

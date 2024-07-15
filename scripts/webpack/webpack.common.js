@@ -2,6 +2,12 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+/* NodeSource changes:
+  - export files to esm folder
+  - use react as a external dependency, both use react 18
+  - we had to use an internal react-redux / toolkit version to separate the stores
+*/
+
 module.exports = {
   entry: './public/app/index.tsx',
   output: {

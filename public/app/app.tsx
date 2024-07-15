@@ -1,21 +1,10 @@
 import React, { useEffect } from 'react';
-import { Sidebar } from '@pyroscope/components/Sidebar';
-// import { TenantWall } from '@pyroscope/components/TenantWall';
-import { useSelectFirstApp } from '@pyroscope/hooks/useAppNames';
 import '@pyroscope/jquery-import';
-// import { ComparisonView } from '@pyroscope/pages/ComparisonView';
-// import { DiffView } from '@pyroscope/pages/DiffView';
-// import { ExploreView } from '@pyroscope/pages/ExploreView';
 import { SingleView } from '@pyroscope/pages/SingleView';
-import { ROUTES } from '@pyroscope/pages/routes';
 import store from '@pyroscope/redux/store';
-// import Notifications from '@pyroscope/ui/Notifications';
-import { history } from '@pyroscope/util/history';
 import '@szhsin/react-menu/dist/index.css';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { Route, Router, Switch } from 'react-router-dom';
-import { setupReduxQuerySync } from './redux/useReduxQuerySync';
 import './sass/profile.scss';
 
 declare global {
@@ -29,10 +18,13 @@ if (typeof window !== 'undefined') {
   window.__grafana_public_path__ = 'assets/grafana/';
 }
 
-export function App({ data }) {
-  // setupReduxQuerySync();
-  // useSelectFirstApp();
+/* NodeSource changes:
+  - removed the routes logic
+  - add data as a prop
+  - select the child-app-container node to render the app, we had to contain the app with is own store to avoid state conflicts with the parent app
+*/
 
+export function App({ data }: { data: any }) {
   return (
     <Provider store={store}>
       <SingleView data={data}/>
@@ -40,7 +32,7 @@ export function App({ data }) {
   );
 }
 
-export const IsolatedApp = ({ data }) => {
+export const IsolatedApp = ({ data }: { data: any })  => {
 
   useEffect(() => {
     const mountNode = document.getElementById('child-app-container');
@@ -54,7 +46,7 @@ export const IsolatedApp = ({ data }) => {
     } else {
       console.error('Target container is not a DOM element.');
     }
-  }, []);
+  }, [data]);
 
   return null;
 };

@@ -2,9 +2,13 @@ const { merge } = require('webpack-merge');
 const path = require('path');
 const common = require('./webpack.common');
 
+/* NodeSource changes:
+  - export files to esm folder
+*/
+
 module.exports = merge(common, {
-  mode: 'development', // No minificación
-  devtool: 'source-map', // Agregar sourcemaps
+  mode: 'development', // No minification
+  devtool: 'source-map', // Add sourcemap support
   output: {
     clean: true,
     path: path.resolve(__dirname, '../../dist/esm'),

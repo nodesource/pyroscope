@@ -17,11 +17,9 @@ import { Field, Message } from 'protobufjs/light';
 import { flameGraphUpload } from '@pyroscope/services/flamegraphcom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { format } from 'date-fns';
-import { isRouteActive, ROUTES } from '@pyroscope/pages/routes';
 import { Profile } from '@pyroscope/legacy/models';
 import { Tooltip } from '@pyroscope/ui/Tooltip';
 import { useAppDispatch, useAppSelector } from '@pyroscope/redux/hooks';
-import { useLocation } from 'react-router-dom';
 import 'compression-streams-polyfill';
 
 /* eslint-disable react/destructuring-assignment */
@@ -113,6 +111,9 @@ function buildPprofQuery(state: ContinuousState) {
   return PprofRequest.encode(message).finish();
 }
 
+/* NodeSource changes:
+  - The commented code was breaking the render, we don't have routes anymore
+*/
 function ExportData(props: ExportDataProps) {
   const { exportJSON = false, exportFlamegraphDotCom = true } = props;
   let { exportPprof } = props;

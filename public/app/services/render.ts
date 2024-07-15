@@ -15,7 +15,6 @@ import { Timeline, TimelineSchema } from '@pyroscope/models/timeline';
 import { Annotation, AnnotationSchema } from '@pyroscope/models/annotation';
 import type { RequestError } from '@pyroscope/services/base';
 import { request, parseResponse } from '@pyroscope/services/base';
-import resultJson from '../response.json';
 
 export interface RenderOutput {
   profile: Profile;
@@ -40,21 +39,10 @@ interface RenderSingleProps {
   maxNodes: string | number;
 }
 export async function renderSingle(data: any
-  // props: RenderSingleProps,
-  // controller?: {
-  //   signal?: AbortSignal;
-  // }
 ): Promise<Result<RenderOutput, RequestError | ZodError>> {
-  // const url = buildRenderURL(props);
-  // // TODO
-  // const response = await request(`/pyroscope${url}&format=json`, {
-  //   signal: controller?.signal,
-  // });
-
-  // if (response.isErr) {
-  //   return Result.err<RenderOutput, RequestError>(response.error);
-  // }
-  console.log(data);
+  /* NodeSource changes:
+    - modified function to receive the data directly as a prop
+  */
   const parsed = FlamebearerProfileSchema.merge(
     z.object({
       timeline: TimelineSchema,
