@@ -208,37 +208,37 @@ function ExportData(props: ExportDataProps) {
     document.body.removeChild(dlLink);
   };
 
-  const downloadPNG = async () => {
-    if (exportPNG) {
-      const { flamebearer } = props;
+  // const downloadPNG = async () => {
+  //   if (exportPNG) {
+  //     const { flamebearer } = props;
 
-      const defaultExportName = getFilename(
-        flamebearer.metadata.appName,
-        flamebearer.metadata.startTime,
-        flamebearer.metadata.endTime
-      );
-      // get user input from modal
-      const customExportName = await getCustomExportName(defaultExportName);
-      // return if user cancels the modal
-      if (!customExportName) {
-        return;
-      }
+  //     const defaultExportName = getFilename(
+  //       flamebearer.metadata.appName,
+  //       flamebearer.metadata.startTime,
+  //       flamebearer.metadata.endTime
+  //     );
+  //     // get user input from modal
+  //     const customExportName = await getCustomExportName(defaultExportName);
+  //     // return if user cancels the modal
+  //     if (!customExportName) {
+  //       return;
+  //     }
 
-      const filename = `${customExportName}.png`;
+  //     const filename = `${customExportName}.png`;
 
-      // TODO use ref
-      // this won't work for comparison side by side
-      const canvasElement = document.querySelector(
-        '.flamegraph-canvas'
-      ) as HTMLCanvasElement;
-      canvasElement.toBlob(function (blob) {
-        if (!blob) {
-          return;
-        }
-        saveAs(blob, filename);
-      });
-    }
-  };
+  //     // TODO use ref
+  //     // this won't work for comparison side by side
+  //     const canvasElement = document.querySelector(
+  //       '.flamegraph-canvas'
+  //     ) as HTMLCanvasElement;
+  //     canvasElement.toBlob(function (blob) {
+  //       if (!blob) {
+  //         return;
+  //       }
+  //       saveAs(blob, filename);
+  //     });
+  //   }
+  // };
 
   const handleToggleMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -309,7 +309,7 @@ function ExportData(props: ExportDataProps) {
           </Tooltip>
         )}
         <div className={toggleMenu ? styles.menuShow : styles.menuHide}>
-          {exportPNG && (
+          {/* {exportPNG && (
             <button
               className={styles.dropdownMenuItem}
               onClick={downloadPNG}
@@ -318,7 +318,7 @@ function ExportData(props: ExportDataProps) {
             >
               png
             </button>
-          )}
+          )} */}
           {exportJSON && (
             <button
               className={styles.dropdownMenuItem}
