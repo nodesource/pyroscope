@@ -4,11 +4,11 @@
   "repository": "git@github.com:nodesource/pyroscope.git",
   "author": "NodeSource",
   "license": "AGPL-3.0-only",
-  "module": "dist/esm/index.js",
+  "module": "dist/esm/index.js.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js"
+      "import": "./dist/esm/index.js.mjs"
     }
   },
   "files": [
@@ -17,7 +17,7 @@
   "scripts": {
     "test": "jest",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "build": "webpack --config scripts/webpack/webpack.prod.js",
+    "build": "vite build --config ./scripts/webpack/vite.config.js",
     "dev": "NODE_ENV=development webpack serve --progress --color --config scripts/webpack/webpack.dev.js",
     "backend:dev": "make build run 'PARAMS=--config.file ./cmd/pyroscope/pyroscope.yaml'",
     "cy": "cypress",
@@ -135,6 +135,10 @@
     "tsconfig-paths-webpack-plugin": "^4.0.1",
     "typescript": "^4.5.2",
     "typescript-plugin-css-modules": "^3.4.0",
+    "vite-plugin-css-injected-by-js": "^3.5.1",
+    "vite-plugin-libcss": "^1.1.1",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-svg-loader": "^5.1.0",
     "web-streams-polyfill": "^3.2.1",
     "webpack": "^5.77.0",
     "webpack-bundle-analyzer": "^4.4.2",
@@ -160,6 +164,8 @@
     "@react-hook/window-size": "^3.1.1",
     "@szhsin/react-menu": "3.5.2",
     "@types/file-saver": "^2.0.5",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-swc": "^3.7.0",
     "color": "^3.1.3",
     "compression-streams-polyfill": "^0.1.4",
     "css-loader": "^4.0.0",
@@ -189,6 +195,7 @@
     "react-textarea-autosize": "8.3.0",
     "redux-persist": "^6.0.0",
     "redux-query-sync": "^0.1.10",
+    "rollup-plugin-copy": "^3.5.0",
     "sass-loader": "^9.0.2",
     "style-loader": "^4.0.0",
     "sweetalert2": "^11.4.0, <11.4.9",
@@ -197,6 +204,7 @@
     "true-myth": "~5.2.0",
     "ts-custom-error": "^3.2.0",
     "ts-essentials": "^9.0.0",
+    "vite": "^5.3.4",
     "zod": "^3.22.3"
   },
   "optionalDependencies": {

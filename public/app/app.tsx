@@ -6,6 +6,9 @@ import '@szhsin/react-menu/dist/index.css';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import './sass/profile.scss';
+import '@fortawesome/free-solid-svg-icons'
+import '@fortawesome/free-brands-svg-icons'
+import '@fortawesome/free-regular-svg-icons'
 
 declare global {
   interface Window {
