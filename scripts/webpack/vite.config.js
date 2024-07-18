@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import libCss from 'vite-plugin-libcss';
-import svgr from 'vite-plugin-svgr';
+// import svgr from 'vite-plugin-svgr';
 
 // Vite configuration
 export default defineConfig({
@@ -21,8 +21,12 @@ export default defineConfig({
   },
   build: {
     outDir: path.resolve(__dirname, '../../dist/esm'),
+    // esto es un intento para configurar los inlines de los svgs
     // assetsInlineLimit: Number.MAX_SAFE_INTEGER,
     emptyOutDir: true,
+    assetsInlineLimit: (file) => {
+      return !file.endsWith('.svg');
+    },
     lib: {
       entry: path.resolve(__dirname, "../../public/app/index.tsx"),
       fileName: "index.js",
@@ -41,11 +45,19 @@ export default defineConfig({
   plugins: [
     react(),
     libCss(),
-    svgr({
-      // svgr options: https://react-svgr.com/docs/options/
-      svgrOptions: { exportType: "default", ref: true, svgo: false, titleProp: true },
-      include: "**/*.svg",
-    }),
+    // estaba experimentando con este plugin pero no me ha funcionado
+    // svgr({
+    //   svgrOptions: {
+    //     plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
+    //     svgoConfig: {
+    //       floatPrecision: 2,
+    //       removeViewBox: false,
+    //       convertPathData: {
+    //         noSpaceAfterFlags: false
+    //       }
+    //     },
+    //   }
+    // })
   ],
   css: {
     // modules: {
