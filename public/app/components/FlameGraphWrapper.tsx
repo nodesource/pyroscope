@@ -30,7 +30,7 @@ export function FlameGraphWrapper(props: Props) {
   const { colorMode } = useColorMode();
   const exportToFlamegraphDotComFn = useExportToFlamegraphDotCom(props.profile);
 
-  if (isGrafanaFlamegraphEnabled) {
+  if (!isGrafanaFlamegraphEnabled) {
     const dataFrame = props.profile
       ? flamebearerToDataFrameDTO(
           props.profile.flamebearer.levels,
