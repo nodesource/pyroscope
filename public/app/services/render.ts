@@ -51,7 +51,7 @@ export async function renderSingle(data: any
   )
     .merge(z.object({ telemetry: z.object({}).passthrough().optional() }))
     .safeParse(data);
-  console.log(parsed);
+
   if (parsed.success) {
     // TODO: strip timeline
     const profile = parsed.data;
