@@ -3,18 +3,6 @@
  * 2. Add typography inheritance in all browsers (opinionated).
  */
 
-button,
-input,
-select,
-textarea {
-  background-color: transparent; /* 1 */
-  border: 1px solid WindowFrame; /* 1 */
-  color: inherit; /* 1 */
-  font: inherit; /* 2 */
-  letter-spacing: inherit; /* 2 */
-  padding: 0.25em 0.375em; /* 1 */
-}
-
 /**
  * Change the inconsistent appearance in all browsers (opinionated).
  */

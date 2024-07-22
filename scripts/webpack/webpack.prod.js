@@ -1,24 +1,27 @@
 const { merge } = require('webpack-merge');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const common = require('./webpack.common');
-
-/* NodeSource changes:
-  - export files to esm folder
-*/
 
 module.exports = merge(common, {
   mode: 'production',
   output: {
     clean: true,
-    path: path.resolve(__dirname, '../../dist/esm'),
-    filename: 'index.js',
-    libraryTarget: 'module',
-    module: true,
-    environment: {
-      module: true,
-    },
+    path: path.resolve(__dirname, '../../public/build/assets'),
+    publicPath: 'assets',
   },
-  experiments: {
-    outputModule: true,
-  },
+  plugins: [
+    new webpack.DefinePlugin({
+      // The go server will parse this HTML file
+      'process.env.BASEPATH': JSON.stringify('{{ .BaseURL }}'),
+    }),
+    // Duplicated in webpack.dev.js
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, '../../public/build/index.html'),
+      favicon: path.resolve(__dirname, '../../public/app/images/favicon.ico'),
+      template: path.resolve(__dirname, '../../public/templates/index.html'),
+      chunksSortMode: 'none',
+    }),
+  ],
 });

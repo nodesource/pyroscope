@@ -24,29 +24,12 @@ if (typeof window !== 'undefined') {
   - select the child-app-container node to render the app, we had to contain the app with is own store to avoid state conflicts with the parent app
 */
 
-export function App({ data }: { data: any }) {
+const Pyroscope = ({ data }: { data: any }) => {
   return (
     <Provider store={store}>
       <SingleView data={data}/>
     </Provider>
-  );
-}
-
-export const IsolatedApp = ({ data }: { data: any })  => {
-
-  useEffect(() => {
-    const mountNode = document.getElementById('child-app-container');
-    if (mountNode) {
-      const root = ReactDOM.createRoot(mountNode);
-      root.render(
-        <Provider store={store}>
-          <App data={data}/>
-        </Provider>
-      );
-    } else {
-      console.error('Target container is not a DOM element.');
-    }
-  }, [data]);
-
-  return null;
+  )
 };
+
+export default Pyroscope;

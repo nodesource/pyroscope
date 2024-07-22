@@ -9,5 +9,5 @@ interface SingleViewProps {
 }
 
 export function SingleView({ data }: SingleViewProps) {
-  return <ContinuousSingleView data={data}/>;
+  return <ContinuousSingleView data={data} />;
 }

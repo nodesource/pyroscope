@@ -1,3 +1,3 @@
-import { IsolatedApp as Pyroscope } from './app';
+import Pyroscope from './app';
 
 export { Pyroscope };

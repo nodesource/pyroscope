@@ -9,7 +9,9 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js.mjs"
-    }
+    },
+    "./dist/style.css": "./dist/esm/style.css"
+
   },
   "files": [
     "dist"
