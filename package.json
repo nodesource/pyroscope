@@ -1,11 +1,14 @@
 {
-  "name": "a-ns-pyroscope",
-  "version": "2.0.0",
+  "name": "@ns-private/pyroscope",
+  "version": "1.0.0",
   "repository": "git@github.com:nodesource/pyroscope.git",
   "author": "NodeSource",
   "license": "AGPL-3.0-only",
   "module": "dist/esm/index.js.mjs",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "registry": "http://packages-internal.nodesource.io"
+  },
   "exports": {
     ".": {
       "import": "./dist/esm/index.js.mjs"
@@ -20,6 +23,7 @@
     "test": "jest",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "build": "vite build --config ./scripts/webpack/vite.config.mjs",
+    "prepublishOnly": "yarn build",
     "dev": "NODE_ENV=development webpack serve --progress --color --config scripts/webpack/webpack.dev.js",
     "backend:dev": "make build run 'PARAMS=--config.file ./cmd/pyroscope/pyroscope.yaml'",
     "cy": "cypress",

@@ -22,7 +22,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "../../public/app/index.tsx"),
       fileName: "index.js",
-      name: 'a-ns-pyroscope',
+      name: '@ns-private/pyroscope',
       formats: ['es']
     },
     rollupOptions: {
