@@ -5,6 +5,7 @@ import store from '@pyroscope/redux/store';
 import '@szhsin/react-menu/dist/index.css';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
+import 'sweetalert2/dist/sweetalert2.min.css'
 import './sass/profile.scss';
 
 declare global {
