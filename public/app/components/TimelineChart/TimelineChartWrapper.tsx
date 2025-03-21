@@ -158,14 +158,14 @@ class TimelineChartWrapper extends React.Component<
       syncCrosshairsWith: [],
       yaxis: {
         show: false,
-        min: 0,
+        min: 0
       },
       points: {
         show: false,
         symbol: () => {}, // function that draw points on the chart
       },
       lines: {
-        show: false,
+        show: true,
       },
       bars: {
         show: true,

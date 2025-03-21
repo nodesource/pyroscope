@@ -9,6 +9,7 @@ import (
 	querierv1 "github.com/grafana/pyroscope/api/gen/proto/go/querier/v1"
 )
 
+// NODESOURCE: heres the structure for diffs
 // NewFlamegraphDiff generates a FlameGraphDiff from 2 trees.
 // It also prunes the final tree based on the maxNodes parameter
 // Notice that the resulting FlameGraph can't be used interchangeably with a 'single' Flamegraph
@@ -23,6 +24,13 @@ import (
 //	i+4 = total   , right tree
 //	i+5 = self    , right tree
 //	i+6 = index in the names array
+
+// NODESOURCE: the structure for single is:
+//	i+0 = x offset (position on the x-axis)
+//	i+1 = total samples (including children)
+//	i+2 = self samples (excluding children)
+//	i+3 = index in the names array
+
 func NewFlamegraphDiff(left, right *Tree, maxNodes int64) (*querierv1.FlameGraphDiff, error) {
 	// The algorithm doesn't work properly with negative nodes
 	// Although it's possible to silently drop these nodes
