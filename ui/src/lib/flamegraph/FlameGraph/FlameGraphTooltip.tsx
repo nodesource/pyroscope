@@ -1,5 +1,7 @@
 import { createPortal } from 'react-dom';
 
+import { useFlameGraphPortalRoot } from '../FlameGraphEnvironment';
+
 import {
   type CollapseConfig,
   type FlameGraphDataContainer,
@@ -23,7 +25,9 @@ const FlameGraphTooltip = ({
   position,
   collapseConfig,
 }: Props) => {
-  if (!(item && position)) {
+  const portalRoot = useFlameGraphPortalRoot();
+
+  if (!(item && position && portalRoot)) {
     return null;
   }
 
@@ -59,7 +63,7 @@ const FlameGraphTooltip = ({
         </p>
       </div>
     </div>,
-    document.body,
+    portalRoot,
   );
 };
 

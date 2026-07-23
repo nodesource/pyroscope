@@ -7,6 +7,7 @@ import {
 } from 'react';
 import color from 'tinycolor2';
 
+import { useFlameGraphRoot } from '../FlameGraphEnvironment';
 import { cssVar, useIsLight } from '../theme';
 
 import {
@@ -78,17 +79,18 @@ export function useFlameRender(options: RenderOptions) {
   } = options;
   const ctx = useSetupCanvas(canvasRef, wrapperWidth, depth);
   const isLight = useIsLight();
+  const flameGraphRoot = useFlameGraphRoot();
 
   // There is a bit of dependency injections here that does not add readability, mainly to prevent recomputing some
   // common stuff for all the nodes in the graph when only once is enough. perf/readability tradeoff.
 
   const mutedColor = useMemo(() => {
-    const bg = cssVar('--bg-secondary') || '#28324f';
+    const bg = cssVar('--bg-secondary', flameGraphRoot) || '#28324f';
     const barMutedColor = color(bg);
     return isLight
       ? barMutedColor.darken(10).toHexString()
       : barMutedColor.lighten(10).toHexString();
-  }, [isLight]);
+  }, [flameGraphRoot, isLight]);
 
   const getBarColor = useColorFunction(
     totalColorTicks,

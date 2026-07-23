@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 
 import { Icon, type IconType } from '@components/core/Icon';
 
+import { useFlameGraphPortalRoot } from '../FlameGraphEnvironment';
+
 import './FlameGraphContextMenu.css';
 
 import { type ClickedItemData, type SelectedView } from '../types';
@@ -171,6 +173,7 @@ function ContextMenu({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const portalRoot = useFlameGraphPortalRoot();
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -193,6 +196,8 @@ function ContextMenu({
   const left = Math.min(x, maxLeft);
   const top = Math.min(y, Math.max(0, maxTop));
 
+  if (!portalRoot) return null;
+
   return createPortal(
     <div
       ref={ref}
@@ -203,7 +208,7 @@ function ContextMenu({
     >
       {children}
     </div>,
-    document.body,
+    portalRoot,
   );
 }
 

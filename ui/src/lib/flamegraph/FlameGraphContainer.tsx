@@ -12,6 +12,7 @@ import {
 import { escapeRegex } from './format';
 import FlameGraphHeader from './FlameGraphHeader';
 import FlameGraphTopTableContainer from './TopTable/FlameGraphTopTableContainer';
+import { type TableDensity } from './TopTable/tableDensity';
 import { MIN_WIDTH_TO_SHOW_BOTH_TOPTABLE_AND_FLAMEGRAPH } from './constants';
 
 import './FlameGraphContainer.css';
@@ -72,6 +73,13 @@ export type Props = {
    * Whether or not to keep any focused item when the profile data changes.
    */
   keepFocusOnDataChange?: boolean;
+
+  /**
+   * Controls the top-table row spacing. The compact renderer remains the
+   * default; embedders can opt into a roomier table without changing the
+   * flamegraph layout.
+   */
+  tableDensity?: TableDensity;
 };
 
 const FlameGraphContainer = ({
@@ -87,6 +95,7 @@ const FlameGraphContainer = ({
   disableCollapsing,
   keepFocusOnDataChange,
   getExtraContextMenuButtons,
+  tableDensity = 'compact',
 }: Props) => {
   const [focusedItemData, setFocusedItemData] = useState<ClickedItemData>();
 
@@ -258,6 +267,7 @@ const FlameGraphContainer = ({
       onSandwich={setSandwichItem}
       onSearch={onSearch}
       onTableSort={onTableSortStable}
+      density={tableDensity}
     />
   );
 
@@ -285,7 +295,11 @@ const FlameGraphContainer = ({
   }
 
   return (
-    <div ref={sizeRef} className="fg-container">
+    <div
+      ref={sizeRef}
+      className="fg-container"
+      data-table-density={tableDensity}
+    >
       {!showFlameGraphOnly && (
         <FlameGraphHeader
           search={search}

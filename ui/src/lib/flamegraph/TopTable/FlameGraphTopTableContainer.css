@@ -33,6 +33,7 @@
 }
 
 .fg-tt-header-row {
+  height: var(--fg-tt-header-height);
   border-bottom: 1px solid var(--border-weak);
 }
 
@@ -70,8 +71,7 @@
 }
 
 .fg-tt-row {
-  /* height set via inline style because ROW_HEIGHT also drives the
-     virtualizer's spacer math and we want a single source of truth. */
+  height: var(--fg-tt-row-height);
   border-bottom: 1px solid var(--border-weak);
 }
 
