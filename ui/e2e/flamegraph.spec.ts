@@ -367,6 +367,52 @@ test.describe('flamegraph canvas', () => {
     // fixture changed or the wrong endpoint was hit.
     await expect(tooltip).toContainText('11.1 s');
     await expect(tooltip).toContainText('11,100,000,000');
+
+    const pointerX = await canvas.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const event = new MouseEvent('mousemove', {
+        bubbles: true,
+        clientX: rect.right - 10,
+        clientY: rect.top + 6,
+      });
+      Object.defineProperties(event, {
+        offsetX: { value: element.clientWidth - 10 },
+        offsetY: { value: 6 },
+      });
+      element.dispatchEvent(event);
+      return event.clientX;
+    });
+    const edgeTooltipBox = await tooltip.boundingBox();
+    const wrapperBox = await page.locator('.flamegraph-wrapper').boundingBox();
+    expect(edgeTooltipBox).not.toBeNull();
+    expect(wrapperBox).not.toBeNull();
+    if (!(edgeTooltipBox && wrapperBox)) return;
+
+    expect(edgeTooltipBox.x + edgeTooltipBox.width).toBeLessThan(pointerX);
+    expect(edgeTooltipBox.x).toBeGreaterThanOrEqual(wrapperBox.x);
+
+    const bottomPointerY = await canvas.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const event = new MouseEvent('mousemove', {
+        bubbles: true,
+        clientX: rect.left + element.clientWidth / 2,
+        clientY: window.innerHeight - 10,
+      });
+      Object.defineProperties(event, {
+        offsetX: { value: element.clientWidth / 2 },
+        offsetY: { value: 6 },
+      });
+      element.dispatchEvent(event);
+      return event.clientY;
+    });
+    await expect(tooltip).toBeVisible();
+    const bottomTooltipBox = await tooltip.boundingBox();
+    expect(bottomTooltipBox).not.toBeNull();
+    if (!bottomTooltipBox) return;
+
+    expect(bottomTooltipBox.y + bottomTooltipBox.height).toBeLessThanOrEqual(
+      bottomPointerY,
+    );
   });
 
   test('clicking opens a context menu with Focus / Sandwich / Copy', async ({
