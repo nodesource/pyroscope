@@ -1,10 +1,19 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 
 import { Icon, type IconType } from '@components/core/Icon';
 
 import { type FlameGraphDataContainer } from '../FlameGraph/dataTransform';
 import { escapeRegex } from '../format';
 import { type TableData } from '../types';
+import { getTableDensityMetrics, type TableDensity } from './tableDensity';
 
 import './FlameGraphTopTableContainer.css';
 
@@ -19,6 +28,7 @@ type Props = {
   onSearch: (str: string) => void;
   onSandwich: (str?: string) => void;
   onTableSort?: (sort: string) => void;
+  density?: TableDensity;
 };
 
 type SortColumn = 'Symbol' | 'Self' | 'Total';
@@ -27,11 +37,12 @@ type SortState = { column: SortColumn; direction: SortDirection };
 
 type Row = { symbol: string; self: number; total: number };
 
-// Rows are uniform — measured from a default-styled <tr>. Adjusting this is
-// a one-character change but the virtualizer math depends on it being exact.
-const ROW_HEIGHT = 25;
 const OVERSCAN_ROWS = 8;
-const HEADER_HEIGHT = 27;
+
+type DensityStyle = CSSProperties & {
+  '--fg-tt-row-height': string;
+  '--fg-tt-header-height': string;
+};
 
 const FlameGraphTopTableContainer = memo(
   ({
@@ -43,7 +54,13 @@ const FlameGraphTopTableContainer = memo(
     sandwichItem,
     onSandwich,
     onTableSort,
+    density = 'compact',
   }: Props) => {
+    const densityMetrics = getTableDensityMetrics(density);
+    const densityStyle: DensityStyle = {
+      '--fg-tt-row-height': `${densityMetrics.rowHeight}px`,
+      '--fg-tt-header-height': `${densityMetrics.headerHeight}px`,
+    };
     const rows = useMemo(() => {
       const grouped = buildFilteredTable(data, matchedLabels);
       return Object.entries(grouped).map(([symbol, v]) => ({
@@ -112,22 +129,29 @@ const FlameGraphTopTableContainer = memo(
 
     // Subtract HEADER_HEIGHT from the visible window because the sticky thead
     // covers that many pixels at the top of the scroll container.
-    const visibleBodyH = Math.max(0, viewportH - HEADER_HEIGHT);
+    const visibleBodyH = Math.max(0, viewportH - densityMetrics.headerHeight);
     const firstVisible = Math.max(
       0,
-      Math.floor((scrollTop - HEADER_HEIGHT) / ROW_HEIGHT),
+      Math.floor(
+        (scrollTop - densityMetrics.headerHeight) / densityMetrics.rowHeight,
+      ),
     );
     const lastVisible = Math.min(
       sortedRows.length,
-      Math.ceil((scrollTop + visibleBodyH) / ROW_HEIGHT) + 1,
+      Math.ceil((scrollTop + visibleBodyH) / densityMetrics.rowHeight) + 1,
     );
     const startIdx = Math.max(0, firstVisible - OVERSCAN_ROWS);
     const endIdx = Math.min(sortedRows.length, lastVisible + OVERSCAN_ROWS);
-    const padTop = startIdx * ROW_HEIGHT;
-    const padBottom = (sortedRows.length - endIdx) * ROW_HEIGHT;
+    const padTop = startIdx * densityMetrics.rowHeight;
+    const padBottom = (sortedRows.length - endIdx) * densityMetrics.rowHeight;
 
     return (
-      <div className={'fg-tt-container'} data-testid="topTable">
+      <div
+        className={'fg-tt-container'}
+        data-testid="topTable"
+        data-density={density}
+        style={densityStyle}
+      >
         <div ref={scrollRef} className={'fg-tt-scroll'}>
           <table className={'fg-tt-table'} role="table">
             <thead className={'fg-tt-thead'}>
@@ -281,7 +305,7 @@ function TableRowInner({
   );
 
   return (
-    <tr role="row" className="fg-tt-row" style={{ height: ROW_HEIGHT }}>
+    <tr role="row" className="fg-tt-row">
       <td className="fg-tt-action-cell">
         {/* Visual order matches upstream @grafana/ui <Table>: sandwich first,
             then search. Grafana's source JSX has them reversed but its

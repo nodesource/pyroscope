@@ -1,6 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useFlameGraphPortalRoot } from './FlameGraphEnvironment';
+
 import './Popover.css';
 
 /**
@@ -20,6 +22,7 @@ export function Popover({
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const portalRoot = useFlameGraphPortalRoot();
 
   useEffect(() => {
     if (!open) return;
@@ -59,7 +62,7 @@ export function Popover({
       <span ref={anchorRef} className="fg-popover-anchor">
         {trigger({ open, toggle })}
       </span>
-      {open && pos
+      {open && pos && portalRoot
         ? createPortal(
             <div
               ref={overlayRef}
@@ -69,7 +72,7 @@ export function Popover({
             >
               {overlay({ close })}
             </div>,
-            document.body,
+            portalRoot,
           )
         : null}
     </>
