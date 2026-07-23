@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "baseUrl": "../..",
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@public/*": ["./public/*"]
+    }
+  },
+  "include": [
+    "src",
+    "../../src/lib/flamegraph",
+    "../../src/components/core/Icon.tsx"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "../../src/**/*.test.ts",
+    "../../src/**/*.test.tsx"
+  ]
+}

@@ -11,8 +11,8 @@ const TABLE_DENSITY_METRICS: Record<TableDensity, TableDensityMetrics> = {
     headerHeight: 27,
   },
   comfortable: {
-    rowHeight: 33,
-    headerHeight: 35,
+    rowHeight: 36,
+    headerHeight: 29,
   },
 };
 

@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -13,6 +16,8 @@
     "format:fix": "prettier --write .",
     "preview": "vite preview",
     "test": "node --test 'src/**/*.test.ts'",
+    "ns-pyroscope:build": "yarn workspace @ns-private/pyroscope build",
+    "ns-pyroscope:test": "yarn workspace @ns-private/pyroscope test",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui"
   },

@@ -1,0 +1,179 @@
+.ns-pyroscope {
+  --bg-primary: #171a1a;
+  --bg-secondary: #171a1a;
+  --bg-elevated: #2d3535;
+  --border-weak: #353d3e;
+  --border-medium: #353d3e;
+  --text-primary: #f2f2f2;
+  --text-secondary: #899d9d;
+  --text-link: #f2f2f2;
+  --action-hover: rgba(255, 255, 255, 0.06);
+  --action-selected: rgba(61, 113, 217, 0.2);
+  --action-focus: rgba(61, 113, 217, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --color-primary-border: #6e9fff;
+  --color-primary-text: #6e9fff;
+  --color-secondary-border: rgba(204, 204, 220, 0.28);
+  --ns-table-header-bg: #2d3535;
+  --ns-selected-bg: #303637;
+  --ns-selected-border: #596566;
+  --ns-scroll-track: rgba(46, 53, 53, 0.21);
+  --ns-scroll-thumb: rgba(83, 87, 89, 0.8);
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --weight-medium: 500;
+
+  color-scheme: dark;
+  width: 100%;
+  min-height: 18rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font-family:
+    'Source Sans Pro',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ns-pyroscope,
+.ns-pyroscope * {
+  box-sizing: border-box;
+}
+
+.ns-pyroscope button,
+.ns-pyroscope input {
+  font: inherit;
+}
+
+.ns-pyroscope .fg-container {
+  overflow: hidden;
+}
+
+.ns-pyroscope .fg-body {
+  flex: 0 0 auto;
+  height: max(18rem, calc(100vh - 25rem));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ns-pyroscope .fg-table-container,
+.ns-pyroscope .fg-horizontal-container,
+.ns-pyroscope .fg-vertical-table {
+  height: 100%;
+  max-height: none;
+}
+
+.ns-pyroscope .fg-horizontal-table,
+.ns-pyroscope .fg-horizontal-graph {
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+}
+
+.ns-pyroscope .fg-tt-container {
+  padding: 0.5rem 0 0;
+}
+
+.ns-pyroscope .fg-tt-thead {
+  background-color: var(--ns-table-header-bg);
+}
+
+.ns-pyroscope .fg-tt-table {
+  border-left: 1px solid var(--border-weak);
+  border-right: 1px solid var(--border-weak);
+}
+
+.ns-pyroscope .fg-tt-table th,
+.ns-pyroscope .fg-tt-table td {
+  border-right: 1px solid var(--border-weak);
+}
+
+.ns-pyroscope .fg-tt-table th:last-child,
+.ns-pyroscope .fg-tt-table td:last-child {
+  border-right: 0;
+}
+
+.ns-pyroscope .fg-tt-action-cell {
+  display: table-cell;
+  padding: 2px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ns-pyroscope .fg-tt-action-btn + .fg-tt-action-btn {
+  margin-left: 4px;
+}
+
+.ns-pyroscope .fg-header-radio-label[data-checked='true'] {
+  color: var(--text-primary);
+  background: var(--ns-selected-bg);
+  border-color: var(--ns-selected-border);
+}
+
+.ns-pyroscope .fg-tt-scroll,
+.ns-pyroscope .fg-horizontal-graph,
+.ns-pyroscope .fg-vertical-graph,
+.ns-pyroscope .fg-graph,
+.ns-pyroscope .fg-canvas-graph {
+  scrollbar-color: var(--ns-scroll-thumb) var(--ns-scroll-track);
+  scrollbar-width: thin;
+}
+
+.ns-pyroscope .fg-tt-scroll::-webkit-scrollbar,
+.ns-pyroscope .fg-horizontal-graph::-webkit-scrollbar,
+.ns-pyroscope .fg-vertical-graph::-webkit-scrollbar,
+.ns-pyroscope .fg-graph::-webkit-scrollbar,
+.ns-pyroscope .fg-canvas-graph::-webkit-scrollbar {
+  width: 0.5625rem;
+  height: 0.5625rem;
+}
+
+.ns-pyroscope .fg-tt-scroll::-webkit-scrollbar-track,
+.ns-pyroscope .fg-horizontal-graph::-webkit-scrollbar-track,
+.ns-pyroscope .fg-vertical-graph::-webkit-scrollbar-track,
+.ns-pyroscope .fg-graph::-webkit-scrollbar-track,
+.ns-pyroscope .fg-canvas-graph::-webkit-scrollbar-track {
+  background-color: var(--ns-scroll-track);
+  border: 1px solid var(--ns-table-header-bg);
+  border-radius: var(--radius-md);
+}
+
+.ns-pyroscope .fg-tt-scroll::-webkit-scrollbar-thumb,
+.ns-pyroscope .fg-horizontal-graph::-webkit-scrollbar-thumb,
+.ns-pyroscope .fg-vertical-graph::-webkit-scrollbar-thumb,
+.ns-pyroscope .fg-graph::-webkit-scrollbar-thumb,
+.ns-pyroscope .fg-canvas-graph::-webkit-scrollbar-thumb {
+  background: var(--ns-scroll-thumb);
+  border-radius: var(--radius-md);
+}
+
+.ns-pyroscope .fg-tt-scroll::-webkit-scrollbar-button,
+.ns-pyroscope .fg-horizontal-graph::-webkit-scrollbar-button,
+.ns-pyroscope .fg-vertical-graph::-webkit-scrollbar-button,
+.ns-pyroscope .fg-graph::-webkit-scrollbar-button,
+.ns-pyroscope .fg-canvas-graph::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+}
+
+.ns-pyroscope .fg-tt-scroll::-webkit-scrollbar-corner,
+.ns-pyroscope .fg-horizontal-graph::-webkit-scrollbar-corner,
+.ns-pyroscope .fg-vertical-graph::-webkit-scrollbar-corner,
+.ns-pyroscope .fg-graph::-webkit-scrollbar-corner,
+.ns-pyroscope .fg-canvas-graph::-webkit-scrollbar-corner {
+  background: var(--ns-scroll-track);
+}
+
+.ns-pyroscope-empty {
+  display: grid;
+  min-height: 18rem;
+  place-items: center;
+  color: var(--text-secondary);
+}
