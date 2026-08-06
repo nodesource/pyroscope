@@ -19,7 +19,7 @@ describe('flamebearerToDataFrame', () => {
           [10, 20, 5, 3],
         ],
       },
-      metadata: { units: 'samples' },
+      metadata: { units: 'nanoseconds' },
     };
     const original = structuredClone(profile);
 
@@ -38,6 +38,28 @@ describe('flamebearerToDataFrame', () => {
     assert.deepEqual(frame?.fields[3].values, [100, 60, 20, 40]);
     assert.equal(frame?.fields[2].config.unit, 'ns');
     assert.equal(frame?.fields[3].config.unit, 'ns');
+  });
+
+  it('maps metadata units to the DataFrame unit', () => {
+    const units: Array<[string, string]> = [
+      ['nanoseconds', 'ns'],
+      ['ns', 'ns'],
+      ['samples', 'short'],
+      ['count', 'short'],
+      ['bytes', 'bytes'],
+      ['made-up-unit', 'ns'],
+    ];
+    for (const [metadataUnit, expected] of units) {
+      const frame = flamebearerToDataFrame({
+        flamebearer: {
+          names: ['total'],
+          levels: [[0, 1000000000, 1000000000, 0]],
+        },
+        metadata: { units: metadataUnit },
+      });
+      assert.equal(frame?.fields[2].config.unit, expected, metadataUnit);
+      assert.equal(frame?.fields[3].config.unit, expected, metadataUnit);
+    }
   });
 
   it('returns an empty result for missing and zero profiles', () => {
@@ -67,6 +89,96 @@ describe('flamebearerToDataFrame', () => {
       'first child',
       'rounded child',
     ]);
+  });
+
+  it('encodes producer-provided sample counts into optional sample fields', () => {
+    const profile: FlamebearerProfile = {
+      version: 1,
+      flamebearer: {
+        format: 'single',
+        names: ['total', 'left', 'nested'],
+        // Level 0: one root; level 1: two nodes (left, nested order in BFS is
+        // left then nested). Levels carry nanosecond geometry; sampleLevels
+        // carry [totalSamples, selfSamples] per node in the same order.
+        levels: [
+          [0, 100, 10, 0],
+          [0, 60, 30, 1, 0, 40, 30, 2],
+        ],
+        numSamples: 2922,
+        sampleLevels: [
+          [2922, 300],
+          [1753, 900, 1169, 900],
+        ],
+      },
+      metadata: { units: 'nanoseconds' },
+    };
+
+    const frame = flamebearerToDataFrame(profile);
+
+    assert.equal(frame?.length, 3);
+    assert.equal(frame?.numSamples, 2922);
+
+    const samples = frame?.fields.find((f) => f.name === 'samples');
+    const selfSamples = frame?.fields.find((f) => f.name === 'selfSamples');
+    assert.ok(samples, 'samples field present');
+    assert.ok(selfSamples, 'selfSamples field present');
+    // Aligned to the BFS ordering of the dataframe (total, left, nested).
+    assert.deepEqual(samples?.values, [2922, 1753, 1169]);
+    assert.deepEqual(selfSamples?.values, [300, 900, 900]);
+    assert.deepEqual(samples?.config, { unit: 'short' });
+  });
+
+  it('keeps duration only when sampleLevels are misaligned or invalid', () => {
+    const base = {
+      flamebearer: {
+        names: ['total', 'child'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 90, 20, 1],
+        ],
+      },
+      metadata: { units: 'nanoseconds' },
+    };
+    const fallbacks: FlamebearerProfile[] = [
+      // numSamples is not a safe non-negative integer
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: -1, sampleLevels: [[100, 10], [90, 20]] } },
+      // fewer levels than levels
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10]] } },
+      // more levels than levels
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90, 20], [1, 1]] } },
+      // not two integers per node (odd length)
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90]] } },
+      // selfSamples greater than totalSamples
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90, 95]] } },
+      // non-integer count
+      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90.5, 20]] } },
+    ];
+
+    for (const profile of fallbacks) {
+      const frame = flamebearerToDataFrame(profile);
+      // The temporal profile still decodes...
+      assert.equal(frame?.length, 2, 'tree decodes despite invalid counts');
+      // ...but without any sample fields so nothing renders as samples.
+      assert.equal(
+        frame?.fields.find((f) => f.name === 'samples'),
+        undefined,
+      );
+      assert.equal(frame?.numSamples, undefined);
+    }
+  });
+
+  it('omits sample fields when no sampleLevels are provided', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['total'],
+        levels: [[0, 100, 10, 0]],
+        numSamples: 50,
+      },
+      metadata: { units: 'nanoseconds' },
+    });
+    assert.equal(frame?.length, 1);
+    assert.equal(frame?.numSamples, undefined);
+    assert.equal(frame?.fields.find((f) => f.name === 'samples'), undefined);
   });
 
   for (const [name, profile] of [

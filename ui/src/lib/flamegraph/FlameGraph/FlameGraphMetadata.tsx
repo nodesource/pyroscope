@@ -2,10 +2,10 @@ import { memo, type ReactNode } from 'react';
 
 import { Icon, type IconType } from '@components/core/Icon';
 
-import { formatShort } from '../format';
 import { type ClickedItemData } from '../types';
 
 import { type FlameGraphDataContainer } from './dataTransform';
+import { getPrimaryPillText } from './metadata';
 
 import './FlameGraphMetadata.css';
 
@@ -28,22 +28,14 @@ const FlameGraphMetadata = memo(
     onSandwichPillClick,
   }: Props) => {
     const parts: ReactNode[] = [];
-    const ticksVal = formatShort(totalTicks);
-
-    const displayValue = data.valueDisplayProcessor(totalTicks);
-    let unitValue = displayValue.text + displayValue.suffix;
-    const unitTitle = data.getUnitTitle();
-    if (unitTitle === 'Count') {
-      if (!displayValue.suffix) {
-        // Makes sure we don't show 123undefined or something like that if suffix isn't defined
-        unitValue = displayValue.text;
-      }
-    }
 
     parts.push(
-      <div className="fg-metadata-pill" key={'default'}>
-        {unitValue} | {ticksVal.text}
-        {ticksVal.suffix} samples ({unitTitle})
+      <div
+        className="fg-metadata-pill"
+        key={'default'}
+        data-testid="fg-metadata-pill"
+      >
+        {getPrimaryPillText(data, totalTicks, sandwichedLabel)}
       </div>,
     );
 
