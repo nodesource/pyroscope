@@ -305,6 +305,7 @@ export class FlameGraphDataContainer {
   selfField: Field;
   sampleField: Field | undefined;
   selfSampleField: Field | undefined;
+  sourceField: Field | undefined;
   numSamples: number | undefined;
 
   labelDisplayProcessor: DisplayProcessor;
@@ -330,6 +331,7 @@ export class FlameGraphDataContainer {
     this.selfField = data.fields.find((f) => f.name === 'self')!;
     this.sampleField = data.fields.find((f) => f.name === 'samples');
     this.selfSampleField = data.fields.find((f) => f.name === 'selfSamples');
+    this.sourceField = data.fields.find((f) => f.name === 'source');
     this.numSamples = Number.isSafeInteger(data.numSamples) &&
       data.numSamples! >= 0
       ? data.numSamples
@@ -391,6 +393,29 @@ export class FlameGraphDataContainer {
 
   getSelfSamples(index: number | number[]) {
     return fieldAccessor(this.selfSampleField, index);
+  }
+
+  // Source location string (`path:line[:column]`) for a row, when the frame
+  // carries an optional `source` field. For merged rows (sandwich view,
+  // collapse groups) the collection must not represent distinct sources:
+  // empty values are ignored, since missing metadata does not contradict a
+  // source, but any two distinct non-empty values yield undefined so a single
+  // location is never shown for a row that spans multiple locations.
+  getSource(index: number | number[]): string | undefined {
+    if (!this.sourceField) return undefined;
+    const indexes = typeof index === 'number' ? [index] : index;
+    if (indexes.length === 0) return undefined;
+    let effective: string | undefined;
+    for (const i of indexes) {
+      const value = this.sourceField.values[i];
+      if (typeof value !== 'string' || value.length === 0) continue;
+      if (effective === undefined) {
+        effective = value;
+        continue;
+      }
+      if (effective !== value) return undefined;
+    }
+    return effective;
   }
 
   // Total sample count declared by the producer, when the frame carries a

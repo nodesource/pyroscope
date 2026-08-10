@@ -1,4 +1,8 @@
-import type { Flamebearer, FlamebearerProfile } from './types.ts';
+import type {
+  Flamebearer,
+  FlamebearerProfile,
+  SourceLocation,
+} from './types.ts';
 
 const FieldType = {
   string: 'string',
@@ -125,6 +129,12 @@ function convertSingleFlamebearer(
   const selfValues: number[] = [];
   const sampleValues: number[] = [];
   const selfSampleValues: number[] = [];
+  const sourceValues: string[] = [];
+  // Optional, aligned with `flamebearer.names`. A non-array payload is
+  // ignored so malformed metadata never rejects an otherwise valid profile.
+  const sourceByNameIndex = Array.isArray(profile?.sourceByNameIndex)
+    ? profile?.sourceByNameIndex
+    : undefined;
   const stack = [levels[0][0]];
 
   while (stack.length > 0) {
@@ -139,6 +149,7 @@ function convertSingleFlamebearer(
     selfValues.push(node.self);
     sampleValues.push(node.totalSamples ?? 0);
     selfSampleValues.push(node.selfSamples ?? 0);
+    sourceValues.push(sourceToString(sourceByNameIndex?.[node.nameIndex]) ?? '');
     stack.unshift(...node.children);
   }
 
@@ -193,6 +204,17 @@ function convertSingleFlamebearer(
         config: { unit: 'short' },
       },
     );
+  }
+
+  // Only attach a source field when the producer declared source metadata, so
+  // profiles without it keep byte-for-byte the same frame as before.
+  if (sourceByNameIndex !== undefined) {
+    fields.push({
+      name: 'source',
+      type: FieldType.string,
+      values: sourceValues,
+      config: {},
+    });
   }
 
   const frame: DataFrame = {
@@ -314,6 +336,32 @@ function deriveSampleLevelsFromRate(
   }
 
   return { numSamples, levelCounts };
+}
+
+// Render a SourceLocation as the display string `path:line[:column]` consumed
+// by the tooltip. Prefers the producer-normalized `file` (clean node_modules
+// paths stay visible); the raw `url` is kept in the object for future linking
+// and only used as display fallback. Line/column are appended only when they
+// are safe non-negative integers. The path is never parsed or split, so
+// ambiguous strings like "foo.js:12" are kept verbatim.
+function sourceToString(location: SourceLocation | null | undefined): string | undefined {
+  if (location == null || typeof location !== 'object') return undefined;
+  let path: string | undefined;
+  if (typeof location.file === 'string' && location.file.length > 0) {
+    path = location.file;
+  } else if (typeof location.url === 'string' && location.url.length > 0) {
+    path = location.url;
+  }
+  if (path === undefined) return undefined;
+
+  let source = path;
+  if (isNonNegativeInteger(location.lineNumber)) {
+    source += `:${location.lineNumber}`;
+    if (isNonNegativeInteger(location.columnNumber)) {
+      source += `:${location.columnNumber}`;
+    }
+  }
+  return source;
 }
 
 function decodeLevel(

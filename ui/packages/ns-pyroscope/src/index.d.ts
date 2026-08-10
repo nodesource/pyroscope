@@ -14,9 +14,20 @@ export type Flamebearer = {
   sampleLevels?: number[][];
 };
 
+export type SourceLocation = {
+  file?: string;
+  url?: string;
+  lineNumber?: number;
+  columnNumber?: number;
+  functionName?: string;
+};
+
 export type FlamebearerProfile = {
   version?: number;
   flamebearer: Flamebearer;
+  // Parallel to `flamebearer.names`: each entry is the source location of the
+  // function at `names[i]`, or null when the producer has no location for it.
+  sourceByNameIndex?: Array<SourceLocation | null>;
   metadata?: {
     format?: 'single';
     spyName?: string;
