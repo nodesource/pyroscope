@@ -1,7 +1,7 @@
-import { formatByUnit, type Formatted } from '../format';
-import { SampleUnit } from '../types';
+import { formatByUnit, type Formatted } from '../format.ts';
+import { SampleUnit } from '../types.ts';
 
-import { mergeParentSubtrees, mergeSubtrees } from './treeTransforms';
+import { mergeParentSubtrees, mergeSubtrees } from './treeTransforms.ts';
 
 // Minimal local mirrors of @grafana/data's DataFrame shape. The lib only
 // needs to read named fields by index and inspect their config.unit.
@@ -28,6 +28,9 @@ export type Field = {
 export type DataFrame = {
   fields: Field[];
   length: number;
+  // Total sample count for temporal profiles, when the producer provided
+  // valid per-node counts via the `samples`/`selfSamples` fields.
+  numSamples?: number;
 };
 
 export type DisplayProcessor = (value: unknown) => Formatted;
@@ -300,6 +303,9 @@ export class FlameGraphDataContainer {
   levelField: Field;
   valueField: Field;
   selfField: Field;
+  sampleField: Field | undefined;
+  selfSampleField: Field | undefined;
+  numSamples: number | undefined;
 
   labelDisplayProcessor: DisplayProcessor;
   valueDisplayProcessor: DisplayProcessor;
@@ -322,6 +328,12 @@ export class FlameGraphDataContainer {
     this.levelField = data.fields.find((f) => f.name === 'level')!;
     this.valueField = data.fields.find((f) => f.name === 'value')!;
     this.selfField = data.fields.find((f) => f.name === 'self')!;
+    this.sampleField = data.fields.find((f) => f.name === 'samples');
+    this.selfSampleField = data.fields.find((f) => f.name === 'selfSamples');
+    this.numSamples = Number.isSafeInteger(data.numSamples) &&
+      data.numSamples! >= 0
+      ? data.numSamples
+      : undefined;
 
     const enumConfig = this.labelField?.config?.type?.enum;
     // Labels can come as enum-encoded indexes (DataFrame enum field, where
@@ -371,6 +383,21 @@ export class FlameGraphDataContainer {
 
   getSelfDisplay(index: number | number[]) {
     return this.valueDisplayProcessor(this.getSelf(index));
+  }
+
+  getSamples(index: number | number[]) {
+    return fieldAccessor(this.sampleField, index);
+  }
+
+  getSelfSamples(index: number | number[]) {
+    return fieldAccessor(this.selfSampleField, index);
+  }
+
+  // Total sample count declared by the producer, when the frame carries a
+  // valid `samples` field and a safe non-negative numSamples.
+  getSampleCount(): number | undefined {
+    if (!this.sampleField || this.numSamples == null) return undefined;
+    return this.numSamples;
   }
 
   getUniqueLabels() {

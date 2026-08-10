@@ -4,6 +4,12 @@ export type Flamebearer = {
   numTicks?: number;
   maxSelf?: number;
   format?: 'single';
+  // Total number of samples captured for temporal profiles (independent of the
+  // nanosecond duration encoded in `levels`/`numTicks`).
+  numSamples?: number;
+  // Per-node sample counts aligned to `levels`. Each level holds two integers
+  // per node, in the same order as levels[level]: [totalSamples, selfSamples, ...].
+  sampleLevels?: number[][];
 };
 
 export type FlamebearerProfile = {

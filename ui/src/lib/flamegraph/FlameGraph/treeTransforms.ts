@@ -10,7 +10,7 @@ function groupBy<T>(
   return groups;
 }
 
-import { type LevelItem } from './dataTransform';
+import { type LevelItem } from './dataTransform.ts';
 
 type DataInterface = {
   getLabel: (index: number) => string;
