@@ -4,6 +4,14 @@ import { describe, it } from 'node:test';
 import { getTableDensityMetrics } from '../../../src/lib/flamegraph/TopTable/tableDensity.ts';
 
 import { flamebearerToDataFrame } from './adapter.ts';
+import {
+  consoleOmittedFieldsProfile,
+  consoleOmittedFieldsSources,
+  consoleShapeProfile,
+  consoleShapeSources,
+  nodeModulesProfile,
+  nodeModulesSources,
+} from './contract.fixture.ts';
 import type { FlamebearerProfile } from './types.ts';
 
 describe('flamebearerToDataFrame', () => {
@@ -256,12 +264,209 @@ describe('flamebearerToDataFrame', () => {
     ],
   ] as const) {
     it(`returns an empty result for ${name}`, () => {
+      // These fixtures are deliberately malformed; the double cast bypasses
+      // TS2352 from readonly `as const` literals without widening their types.
       assert.equal(
-        flamebearerToDataFrame(profile as FlamebearerProfile),
+        flamebearerToDataFrame(profile as unknown as FlamebearerProfile),
         undefined,
       );
     });
   }
+});
+
+describe('flamebearerToDataFrame sourceByNameIndex', () => {
+  const baseProfile: FlamebearerProfile = {
+    version: 1,
+    flamebearer: {
+      format: 'single',
+      names: ['total', 'left', 'right', 'nested'],
+      levels: [
+        [0, 100, 10, 0],
+        [0, 60, 20, 1, 0, 40, 30, 2],
+        [10, 20, 5, 3],
+      ],
+    },
+    metadata: { units: 'nanoseconds' },
+  };
+
+  function sourceField(frame: ReturnType<typeof flamebearerToDataFrame>) {
+    return frame?.fields.find((f) => f.name === 'source');
+  }
+
+  it('maps each nameIndex to its source aligned to the dataframe rows', () => {
+    // Row order is BFS preorder (total, left, nested, right) with nameIndexes
+    // 0, 1, 3, 2 respectively.
+    const frame = flamebearerToDataFrame({
+      ...baseProfile,
+      sourceByNameIndex: [
+        null,
+        {
+          url: 'https://github.com/app/a.ts',
+          file: 'local/a.ts',
+          lineNumber: 10,
+          columnNumber: 2,
+        },
+        { file: 'b.ts', lineNumber: 3 },
+        { file: 'nested.ts' },
+      ],
+    });
+
+    assert.deepEqual(frame?.fields[1].values, [
+      'total',
+      'left',
+      'nested',
+      'right',
+    ]);
+    assert.deepEqual(sourceField(frame)?.values, [
+      '',
+      'local/a.ts:10:2',
+      'nested.ts',
+      'b.ts:3',
+    ]);
+    // file is preferred over url for the visible path.
+    assert.equal(sourceField(frame)?.values[1], 'local/a.ts:10:2');
+  });
+
+  it('keeps distinct sources for rows that share the same label', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['total', 'work', 'work'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 60, 20, 1, 0, 40, 30, 2],
+        ],
+      },
+      sourceByNameIndex: [
+        null,
+        { file: 'a.js', lineNumber: 5 },
+        { file: 'b.js', lineNumber: 7 },
+      ],
+    });
+
+    assert.deepEqual(frame?.fields[1].values, ['total', 'work', 'work']);
+    assert.deepEqual(sourceField(frame)?.values, ['', 'a.js:5', 'b.js:7']);
+  });
+
+  it('only appends line and column when they are safe non-negative integers', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['n0', 'n1', 'n2', 'n3', 'n4', 'n5'],
+        levels: [
+          [0, 600, 60, 0],
+          [0, 100, 20, 1, 0, 100, 20, 2, 0, 100, 20, 3, 0, 100, 20, 4, 0, 100, 20, 5],
+        ],
+      },
+      sourceByNameIndex: [
+        null,
+        { file: 'ok.ts', lineNumber: 4, columnNumber: 0 },
+        { file: 'neg.ts', lineNumber: -3 },
+        { file: 'float.ts', lineNumber: 2.5, columnNumber: 1 },
+        { file: 'str.ts', lineNumber: '12' as unknown as number },
+        { file: 'noline.ts', columnNumber: 8 },
+      ],
+    });
+
+    assert.deepEqual(sourceField(frame)?.values, [
+      '',
+      'ok.ts:4:0',
+      'neg.ts',
+      'float.ts',
+      'str.ts',
+      'noline.ts',
+    ]);
+  });
+
+  it('never parses ambiguous path strings', () => {
+    const frame = flamebearerToDataFrame({
+      ...baseProfile,
+      sourceByNameIndex: [
+        null,
+        { file: 'src/app.ts:100', lineNumber: 5 },
+      ],
+    });
+    assert.equal(sourceField(frame)?.values[1], 'src/app.ts:100:5');
+  });
+
+  it('omits the source field when no sourceByNameIndex is provided', () => {
+    const frame = flamebearerToDataFrame(baseProfile);
+    assert.equal(frame?.length, 4);
+    assert.equal(sourceField(frame), undefined);
+  });
+
+  it('degrades gracefully on malformed source metadata', () => {
+    const notAnArray = {
+      ...baseProfile,
+      sourceByNameIndex: 'nope' as unknown as Array<never>,
+    };
+    // Still renders, with no source field.
+    const invalid = flamebearerToDataFrame(notAnArray);
+    assert.equal(invalid?.length, 4);
+    assert.equal(sourceField(invalid), undefined);
+
+    // Short array, null and non-object entries resolve to empty sources but
+    // the profile keeps decoding.
+    const partial = flamebearerToDataFrame({
+      ...baseProfile,
+      sourceByNameIndex: [null, 42 as unknown as null],
+    });
+    assert.equal(partial?.length, 4);
+    assert.deepEqual(sourceField(partial)?.values, ['', '', '', '']);
+  });
+
+  it('honors the Console contract: SourceLocation objects, duplicated labels with distinct sources, raw special chars', () => {
+    const frame = flamebearerToDataFrame(consoleShapeProfile);
+
+    // Duplicated label across two nameIndexes keeps distinct sources.
+    assert.deepEqual(frame?.fields[1].values, [
+      'total',
+      'main',
+      'helper',
+      'main',
+    ]);
+    assert.deepEqual(sourceField(frame)?.values, consoleShapeSources);
+
+    // Special characters survive the adapter raw — React escapes at render.
+    const raw = sourceField(frame)?.values[1];
+    assert.equal(raw, 'https://console.example.com/<app>/main.js?a=1&b=2>:11:2');
+    assert.match(raw, /[<>&]/);
+  });
+
+  it('decodes Console objects with omitted (non-null) fields', () => {
+    const frame = flamebearerToDataFrame(consoleOmittedFieldsProfile);
+    assert.deepEqual(frame?.fields[1].values, [
+      'total',
+      'noLine',
+      'noCol',
+      'bareFile',
+    ]);
+    assert.deepEqual(sourceField(frame)?.values, consoleOmittedFieldsSources);
+  });
+
+  it('tolerates null fields defensively at runtime without breaking the profile', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['total'],
+        levels: [[0, 10, 1, 0]],
+      },
+      sourceByNameIndex: [
+        {
+          file: 'x.ts',
+          url: null as unknown as string,
+          lineNumber: null as unknown as number,
+          columnNumber: 2,
+          functionName: null as unknown as string,
+        },
+      ],
+    });
+    // The location renders from `file`; the null lineNumber (and thus the
+    // column, which only appends after a valid line) is dropped.
+    assert.deepEqual(sourceField(frame)?.values, ['x.ts']);
+  });
+
+  it('prefers the normalized file over the absolute url for node_modules', () => {
+    const frame = flamebearerToDataFrame(nodeModulesProfile);
+    assert.deepEqual(sourceField(frame)?.values, nodeModulesSources);
+  });
 });
 
 describe('top table density', () => {

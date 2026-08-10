@@ -14,6 +14,7 @@ export type {
   Flamebearer,
   FlamebearerProfile,
   PyroscopeProps,
+  SourceLocation,
 } from './types.ts';
 
 export function Pyroscope({

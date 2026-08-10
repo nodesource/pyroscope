@@ -12,9 +12,22 @@ export type Flamebearer = {
   sampleLevels?: number[][];
 };
 
+// Source location attached to a single flamebearer name. The producer may
+// omit any field; the embed only renders what is present and valid.
+export type SourceLocation = {
+  file?: string;
+  url?: string;
+  lineNumber?: number;
+  columnNumber?: number;
+  functionName?: string;
+};
+
 export type FlamebearerProfile = {
   version?: number;
   flamebearer: Flamebearer;
+  // Parallel to `flamebearer.names`: each entry is the source location of the
+  // function at `names[i]`, or null when the producer has no location for it.
+  sourceByNameIndex?: Array<SourceLocation | null>;
   metadata?: {
     format?: 'single';
     spyName?: string;

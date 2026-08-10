@@ -22,6 +22,12 @@
   word-break: break-all;
 }
 
+.fg-tooltip-source {
+  color: var(--text-secondary);
+  margin: 4px 0;
+  word-break: break-all;
+}
+
 .fg-tooltip-last {
   margin-bottom: 0;
 }

@@ -1,4 +1,8 @@
-import type { FlameGraphDataContainer, LevelItem } from './dataTransform.ts';
+import type {
+  CollapseConfig,
+  FlameGraphDataContainer,
+  LevelItem,
+} from './dataTransform.ts';
 
 export type TooltipData = {
   percentValue: number;
@@ -7,6 +11,7 @@ export type TooltipData = {
   unitValue: string;
   unitSelf: string;
   samples: string | undefined;
+  source: string | undefined;
 };
 
 export function getTooltipData(
@@ -60,5 +65,20 @@ export function getTooltipData(
     unitValue,
     unitSelf,
     samples,
+    source: data.getSource(item.itemIndexes),
   };
+}
+
+// Conservative source resolution for a collapsed group. All member itemIndexes
+// are flattened into a single resolution so a nested conflict cannot be
+// masked: a member that is itself a heterogeneous merge (e.g. [a, b]) plus
+// another member resolving to `a` must hide the line, since the group spans
+// distinct sources. Empty entries are ignored; any two distinct non-empty
+// sources across the whole group yield undefined.
+export function getCollapsedGroupSource(
+  data: FlameGraphDataContainer,
+  collapseConfig: CollapseConfig,
+): string | undefined {
+  const indexes = collapseConfig.items.flatMap((member) => member.itemIndexes);
+  return data.getSource(indexes);
 }

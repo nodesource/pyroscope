@@ -9,7 +9,7 @@ import {
   type LevelItem,
 } from './dataTransform';
 import { getTooltipPosition } from './tooltipPosition';
-import { getTooltipData } from './tooltipData';
+import { getCollapsedGroupSource, getTooltipData } from './tooltipData';
 
 import './FlameGraphTooltip.css';
 
@@ -50,6 +50,13 @@ const FlameGraphTooltip = ({
   }
 
   const tooltipData = getTooltipData(data, item, totalTicks);
+  // Collapsed groups represent several items; resolve the location across the
+  // whole group and hide it when the group spans distinct sources rather than
+  // showing the representative item's location.
+  const source =
+    collapseConfig?.collapsed === true
+      ? getCollapsedGroupSource(data, collapseConfig)
+      : tooltipData.source;
   const portalBounds = portalRoot.getBoundingClientRect();
   const view = portalRoot.ownerDocument.defaultView;
   const viewport = {
@@ -89,6 +96,9 @@ const FlameGraphTooltip = ({
             ''
           )}
         </p>
+        {source && (
+          <p className="fg-tooltip-source">{source}</p>
+        )}
         <p className="fg-tooltip-last">
           {tooltipData.unitTitle}
           <br />
