@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import { FlameGraphDataContainer } from '../../../src/lib/flamegraph/FlameGraph/dataTransform.ts';
 import type { LevelItem } from '../../../src/lib/flamegraph/FlameGraph/dataTransform.ts';
+import { formatClipboardText } from '../../../src/lib/flamegraph/FlameGraph/copy.ts';
 import { getPrimaryPillText } from '../../../src/lib/flamegraph/FlameGraph/metadata.ts';
 import {
   getCollapsedGroupSource,
@@ -73,6 +74,23 @@ function buildTemporalFrame({
     { collapsing: false },
   );
 }
+
+describe('formatClipboardText', () => {
+  it('joins name and source on a single line as "<name> at <source>"', () => {
+    assert.equal(
+      formatClipboardText('app.work', '/src/app/work.ts:42:7'),
+      'app.work at /src/app/work.ts:42:7',
+    );
+  });
+
+  it('keeps name-only when the source is missing', () => {
+    assert.equal(formatClipboardText('app.work', undefined), 'app.work');
+  });
+
+  it('keeps name-only when the source is empty', () => {
+    assert.equal(formatClipboardText('app.work', ''), 'app.work');
+  });
+});
 
 describe('metadata pill', () => {
   it('shows duration and sample count independently for temporal profiles', () => {
