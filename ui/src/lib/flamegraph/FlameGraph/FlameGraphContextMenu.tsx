@@ -9,6 +9,8 @@ import './FlameGraphContextMenu.css';
 
 import { type ClickedItemData, type SelectedView } from '../types';
 
+import { formatClipboardText } from './copy';
+
 import {
   type CollapseConfig,
   type DataFrame,
@@ -91,12 +93,19 @@ const FlameGraphContextMenu = ({
         }}
       />
       <MenuItem
-        label="Copy function name"
+        label="Copy function and location"
         icon="copy"
         onClick={() => {
-          navigator.clipboard.writeText(itemData.label).then(() => {
-            onMenuItemClick();
-          });
+          const source = data.getSource(itemData.item.itemIndexes);
+          navigator.clipboard
+            .writeText(formatClipboardText(itemData.label, source))
+            .then(() => {
+              onMenuItemClick();
+            })
+            .catch((err) => {
+              console.warn('Failed to copy function and location', err);
+              onMenuItemClick();
+            });
         }}
       />
       <MenuItem
