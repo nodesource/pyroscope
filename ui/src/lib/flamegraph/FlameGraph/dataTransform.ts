@@ -171,6 +171,14 @@ export class CollapsedMap {
 
     return new CollapsedMap(newMap);
   }
+
+  /** True when the map has at least one group and every group is expanded. */
+  isAllExpanded(): boolean {
+    if (this.size() === 0) {
+      return false;
+    }
+    return Array.from(this.values()).every((config) => !config.collapsed);
+  }
 }
 
 /**
