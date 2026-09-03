@@ -110,6 +110,11 @@ const FlameGraphContainer = ({
   // This is a label of the item because in sandwich view we group all items by label and present a merged graph
   const [sandwichItem, setSandwichItem] = useState<string>();
   const [collapsedMap, setCollapsedMap] = useState(new CollapsedMap());
+  // "Expand all groups" intent, tracked separately from the current map so it
+  // survives data refreshes whose intermediate collapsed map is empty (e.g.
+  // partial eBPF symbolization windows): once every group was expanded, keep
+  // re-applying that until a non-empty map shows otherwise.
+  const keepExpandedRef = useRef(false);
 
   // Use refs to hold the latest callback values to prevent unnecessary re-renders
   const onTableSymbolClickRef = useRef(onTableSymbolClick);
@@ -127,11 +132,31 @@ const FlameGraphContainer = ({
     const container = new FlameGraphDataContainer(data, {
       collapsing: !disableCollapsing,
     });
-    setCollapsedMap(container.getCollapsedMap());
+    // Compute the fresh map before the updater so the updater stays pure
+    // (getCollapsedMap lazily initializes the levels).
+    const fresh = container.getCollapsedMap();
+    // Preserve "expand all groups" across dynamic data refreshes (e.g. eBPF
+    // symbolization windows): if the user had every group expanded — or an
+    // earlier refresh in this view did — re-apply that to the fresh map. The
+    // ref keeps the intent alive across intermediate profiles whose collapsed
+    // map is empty, which would otherwise break the all-expanded chain.
+    setCollapsedMap((prev) =>
+      prev.isAllExpanded() || keepExpandedRef.current
+        ? fresh.setAllCollapsedStatus(false)
+        : fresh,
+    );
     return container;
   }, [data, disableCollapsing]);
   const [colorScheme, setColorScheme] = useColorScheme(dataContainer);
   const matchedLabels = useLabelSearch(search, dataContainer);
+
+  // Track the committed expansion intent; empty maps (no collapsible groups
+  // in intermediate profiles) leave the previous intent untouched.
+  useEffect(() => {
+    if (collapsedMap.size() > 0) {
+      keepExpandedRef.current = collapsedMap.isAllExpanded();
+    }
+  }, [collapsedMap]);
 
   // If user resizes window with both as the selected view
   useEffect(() => {
