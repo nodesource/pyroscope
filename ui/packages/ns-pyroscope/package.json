@@ -1,6 +1,6 @@
 {
   "name": "@ns-private/pyroscope",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Embeddable Pyroscope profile visualization for N|Solid Console",
   "type": "module",
   "license": "AGPL-3.0-only",
