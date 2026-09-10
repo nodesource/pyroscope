@@ -36,6 +36,7 @@
     "build": "vite build && cp src/index.d.ts dist/index.d.ts",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "test": "node --test 'src/**/*.test.ts'",
+    "e2e": "yarn node ../../node_modules/playwright/cli.js test",
     "pack:local": "yarn pack"
   }
 }
