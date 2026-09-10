@@ -16,63 +16,127 @@ type DataInterface = {
   getLabel: (index: number) => string;
 };
 
-// Merge parent subtree of the roots for the callers tree in the sandwich view of the flame graph.
+// Internal queue entry for mergeSubtrees. The sibling offset accumulator is kept here instead of on the public
+// LevelItem output: every group enqueued from one output parent shares the same object.
+type MergeWork = {
+  previous: undefined | LevelItem;
+  items: LevelItem[];
+  level: number;
+  // Running sum of the values of this output parent's already-processed sibling groups. It reproduces the previous
+  // per-group reduce over previous[direction] without rescanning the processed siblings, and preserves the same
+  // sequential addition order.
+  siblingOffset: undefined | { value: number };
+};
+
+// One original node on a first-parent chain. The contribution stays the selected root's value, mirroring the old
+// getParentSubtrees behavior where every copied ancestor was resized to the root value instead of its own data-frame
+// total; walking originals avoids materializing those copied chains.
+type CallerCursor = {
+  node: LevelItem;
+  contribution: number;
+};
+
+// Internal queue entry for the direct callers traversal in mergeParentSubtrees. It uses the same head-index queue and
+// shared sibling accumulator mechanics as mergeSubtrees, but its input is a list of original-node cursors.
+type CallerWork = {
+  cursors: CallerCursor[];
+  previous: undefined | LevelItem;
+  level: number;
+  siblingOffset: undefined | { value: number };
+};
+
+// Merge parent subtree of the roots for the callers tree in the sandwich view of the flame graph. Walks the original
+// first-parent chains directly: no copied ancestor LevelItems and no generic mergeSubtrees pass. Contributions, cursor
+// order (including duplicate occurrences), grouping, output shape and level reversal mirror the previous
+// getParentSubtrees + mergeSubtrees('parents') composition.
 export function mergeParentSubtrees(
   roots: LevelItem[],
   data: DataInterface,
 ): LevelItem[][] {
-  const newRoots = getParentSubtrees(roots);
-  return mergeSubtrees(newRoots, data, 'parents');
-}
+  const levels: LevelItem[][] = [];
+  const queue: Array<CallerWork | undefined> = [
+    {
+      // One cursor per occurrence, in the original root order. Contributions
+      // travel alongside references so the input nodes are never copied or mutated.
+      cursors: roots.map((node) => ({ node, contribution: node.value })),
+      previous: undefined,
+      level: 0,
+      siblingOffset: undefined,
+    },
+  ];
+  let head = 0;
 
-// Returns a subtrees per root that will have the parents resized to the same value as the root. When doing callers
-// tree we need to keep proper sizes of the parents, before we merge them, so we correctly attribute to the parents
-// only the value it contributed to the root.
-// So if we have something like:
-// [0/////////////]
-// [1//][4/////][6]
-// [2]  [5/////]
-// [6]  [6/][8/]
-// [7]
-// Taking all the node with '6' will create:
-// [0][0/]
-// [1][4/]
-// [2][5/][0]
-// [6][6/][6]
-// Which we can later merge.
-function getParentSubtrees(roots: LevelItem[]) {
-  return roots.map((r) => {
-    if (!r.parents?.length) {
-      return r;
+  while (head < queue.length) {
+    const args = queue[head]!;
+    queue[head] = undefined;
+    head++;
+
+    const itemIndexes: number[] = [];
+    let value = 0;
+    for (const cursor of args.cursors) {
+      value += cursor.contribution;
+      for (const index of cursor.node.itemIndexes) {
+        itemIndexes.push(index);
+      }
     }
 
-    const newRoot = {
-      ...r,
+    const newItem: LevelItem = {
+      value,
+      itemIndexes,
       children: [],
+      parents: [],
+      start: 0,
+      level: args.level,
     };
-    const stack: Array<{ child: undefined | LevelItem; parent: LevelItem }> = [
-      { child: newRoot, parent: r.parents[0] },
-    ];
 
-    while (stack.length) {
-      const args = stack.shift()!;
-      const newNode = {
-        ...args.parent,
-        children: args.child ? [args.child] : [],
-        parents: [],
-      };
+    levels[args.level] = levels[args.level] || [];
+    levels[args.level].push(newItem);
 
-      if (args.child) {
-        newNode.value = args.child.value;
-        args.child.parents = [newNode];
-      }
+    if (args.previous) {
+      // Same linkage and start fallback as mergeSubtrees('parents').
+      newItem.children = [args.previous];
+      args.previous.parents!.push(newItem);
+      newItem.start = args.previous.start + (args.siblingOffset!.value || 0);
+      args.siblingOffset!.value += newItem.value;
+    }
 
-      if (args.parent.parents?.length) {
-        stack.push({ child: newNode, parent: args.parent.parents[0] });
+    const nextCursors: CallerCursor[] = [];
+    for (const cursor of args.cursors) {
+      // First parent entry only, exactly like getParentSubtrees did.
+      const parent = cursor.node.parents?.[0];
+      if (parent) {
+        nextCursors.push({
+          node: parent,
+          contribution: cursor.contribution,
+        });
       }
     }
-    return newRoot;
+    // Group by label with the same groupBy/Object.values key ordering as mergeSubtrees.
+    const nextGroups = groupBy(nextCursors, (cursor) =>
+      data.getLabel(cursor.node.itemIndexes[0]),
+    );
+    // One accumulator for every sibling group of this output parent.
+    const siblingOffset = { value: 0 };
+    for (const group of Object.values(nextGroups)) {
+      queue.push({
+        cursors: group,
+        previous: newItem,
+        level: args.level + 1,
+        siblingOffset,
+      });
+    }
+  }
+
+  // The callers tree is built bottom-up, so reverse levels and renumber exactly
+  // like mergeSubtrees(direction='parents').
+  levels.reverse();
+  levels.forEach((level, index) => {
+    level.forEach((item) => {
+      item.level = index;
+    });
   });
+
+  return levels;
 }
 
 // Merge subtrees into a single tree. Returns an array of levels for easy rendering. It assumes roots are mergeable,
@@ -87,16 +151,18 @@ export function mergeSubtrees(
   const oppositeDirection = direction === 'parents' ? 'children' : 'parents';
   const levels: LevelItem[][] = [];
 
-  // Loop instead of recursion to be sure we don't blow stack size limit and save some memory. Each stack item is
-  // basically a list of arrays you would pass to each level of recursion.
-  const stack: Array<{
-    previous: undefined | LevelItem;
-    items: LevelItem[];
-    level: number;
-  }> = [{ previous: undefined, items: roots, level: 0 }];
+  // Loop instead of recursion to be sure we don't blow stack size limit and save some memory. Each queue item is
+  // basically a list of arrays you would pass to each level of recursion. Draining with a head index (instead of
+  // shift) and clearing the consumed slot releases the processed item arrays as soon as they are merged.
+  const queue: Array<MergeWork | undefined> = [
+    { previous: undefined, items: roots, level: 0, siblingOffset: undefined },
+  ];
+  let head = 0;
 
-  while (stack.length) {
-    const args = stack.shift()!;
+  while (head < queue.length) {
+    const args = queue[head]!;
+    queue[head] = undefined;
+    head++;
     const indexes = args.items.flatMap((i) => i.itemIndexes);
     const newItem: LevelItem = {
       // We use the items value instead of value from the data frame, cause we could have changed it in the process
@@ -114,13 +180,11 @@ export function mergeSubtrees(
 
     if (args.previous) {
       // Not the first level, so we need to make sure we update previous items to keep the child/parent relationships
-      // and compute correct new start offset for the item.
+      // and compute correct new start offset for the item. The shared accumulator already holds the sum of the sibling
+      // groups processed before this one, in the same sequential addition order the previous per-group reduce used.
       newItem[oppositeDirection] = [args.previous];
-      const prevSiblingsVal =
-        args.previous[direction]?.reduce((acc, node) => {
-          return acc + node.value;
-        }, 0) || 0;
-      newItem.start = args.previous.start + prevSiblingsVal;
+      newItem.start = args.previous.start + (args.siblingOffset!.value || 0);
+      args.siblingOffset!.value += newItem.value;
       args.previous[direction]!.push(newItem);
     }
 
@@ -129,8 +193,16 @@ export function mergeSubtrees(
     const nextGroups = groupBy(nextItems, (c) =>
       data.getLabel(c.itemIndexes[0]),
     );
+    // One accumulator for every sibling group of this output parent; each group adds its value exactly once when it
+    // is processed, so sibling starts keep the original ordering and floating point addition order.
+    const siblingOffset = { value: 0 };
     for (const g of Object.values(nextGroups)) {
-      stack.push({ previous: newItem, items: g, level: args.level + 1 });
+      queue.push({
+        previous: newItem,
+        items: g,
+        level: args.level + 1,
+        siblingOffset,
+      });
     }
   }
 

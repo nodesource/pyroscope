@@ -469,6 +469,347 @@ describe('flamebearerToDataFrame sourceByNameIndex', () => {
   });
 });
 
+describe('flamebearerToDataFrame parent range matching', () => {
+  it('links a child to the only parent that contains it', () => {
+    const profile: FlamebearerProfile = {
+      flamebearer: {
+        names: ['root', 'left', 'right', 'child'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 40, 10, 1, 20, 40, 10, 2],
+          [0, 20, 5, 3],
+        ],
+      },
+    };
+    const original = structuredClone(profile);
+
+    const frame = flamebearerToDataFrame(profile);
+
+    assert.deepEqual(profile, original);
+    assert.equal(frame?.length, 4);
+    assert.deepEqual(frame?.fields[0].values, [0, 1, 2, 1]);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'left',
+      'child',
+      'right',
+    ]);
+    assert.deepEqual(frame?.fields[2].values, [10, 10, 5, 10]);
+    assert.deepEqual(frame?.fields[3].values, [100, 40, 20, 40]);
+  });
+
+  it('rejects a child that falls in the gap between parents', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'left', 'right', 'orphan'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 40, 10, 1, 20, 40, 10, 2],
+          [45, 5, 5, 3],
+        ],
+      },
+    });
+    assert.equal(frame, undefined);
+  });
+
+  it('rejects a child contained by two overlapping parents', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'wide', 'overlapping', 'child'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 60, 10, 1, -1, 40, 10, 2],
+          [59, 1, 1, 3],
+        ],
+      },
+    });
+    assert.equal(frame, undefined);
+  });
+
+  it('rejects a zero-width node on the shared boundary of adjacent parents', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'left', 'right', 'boundary'],
+        levels: [
+          [0, 100, 10, 0],
+          [0, 50, 10, 1, 0, 50, 10, 2],
+          [50, 0, 0, 3],
+        ],
+      },
+    });
+    assert.equal(frame, undefined);
+  });
+
+  it('links a zero-width node that touches the end of its parent', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'parent', 'tail'],
+        levels: [
+          [0, 10, 0, 0],
+          [0, 10, 0, 1],
+          [10, 0, 0, 2],
+        ],
+      },
+    });
+    assert.equal(frame?.length, 3);
+    assert.deepEqual(frame?.fields[1].values, ['root', 'parent', 'tail']);
+  });
+
+  it('links a zero-width child to a zero-width parent at the same start', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'pin', 'pin child'],
+        levels: [
+          [0, 10, 0, 0],
+          [5, 0, 0, 1],
+          [5, 0, 0, 2],
+        ],
+      },
+    });
+    assert.equal(frame?.length, 3);
+    assert.deepEqual(frame?.fields[1].values, ['root', 'pin', 'pin child']);
+  });
+
+  it('accepts one nanosecond of end drift in a later parent and rejects more', () => {
+    const profile = (childTotal: number): FlamebearerProfile => ({
+      flamebearer: {
+        names: ['root', 'left', 'right', 'drifted'],
+        levels: [
+          [0, 40, 0, 0],
+          [0, 5, 0, 1, 15, 20, 5, 2],
+          [20, childTotal, 0, 3],
+        ],
+      },
+    });
+
+    const frame = flamebearerToDataFrame(profile(21));
+    assert.equal(frame?.length, 4);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'left',
+      'right',
+      'drifted',
+    ]);
+    assert.deepEqual(frame?.fields[3].values, [40, 5, 20, 21]);
+    assert.equal(flamebearerToDataFrame(profile(22)), undefined);
+  });
+
+  it('links a child through parents that overlap from an accepted -1 offset', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'first', 'overlapping', 'child'],
+        levels: [
+          [0, 20, 0, 0],
+          [0, 10, 0, 1, -1, 5, 0, 2],
+          [10, 2, 0, 3],
+        ],
+      },
+    });
+    assert.equal(frame?.length, 4);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'first',
+      'overlapping',
+      'child',
+    ]);
+    assert.deepEqual(frame?.fields[3].values, [20, 10, 5, 2]);
+  });
+
+  it('links a child when -1 offsets make parent starts descend', () => {
+    const profile: FlamebearerProfile = {
+      flamebearer: {
+        names: ['root', 'first', 'second', 'third', 'child'],
+        levels: [
+          [0, 20, 0, 0],
+          [0, 2, 0, 1, 1, 0, 0, 2, -1, 2, 0, 3],
+          [2, 1, 0, 4],
+        ],
+      },
+    };
+    const original = structuredClone(profile);
+
+    const frame = flamebearerToDataFrame(profile);
+
+    assert.deepEqual(profile, original);
+    assert.equal(frame?.length, 5);
+    assert.deepEqual(frame?.fields[0].values, [0, 1, 1, 1, 2]);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'first',
+      'second',
+      'third',
+      'child',
+    ]);
+    assert.deepEqual(frame?.fields[3].values, [20, 2, 0, 2, 1]);
+  });
+
+  it('emits depth-first preorder with siblings in level order', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'a', 'b', 'a1', 'a2', 'b1'],
+        levels: [
+          [0, 25, 0, 0],
+          [0, 15, 5, 1, 0, 10, 5, 2],
+          [0, 5, 1, 3, 0, 8, 2, 4, 2, 5, 3, 5],
+        ],
+      },
+    });
+
+    assert.equal(frame?.length, 6);
+    assert.deepEqual(frame?.fields[0].values, [0, 1, 2, 2, 1, 2]);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'a',
+      'a1',
+      'a2',
+      'b',
+      'b1',
+    ]);
+    assert.deepEqual(frame?.fields[2].values, [0, 5, 1, 2, 5, 3]);
+    assert.deepEqual(frame?.fields[3].values, [25, 15, 5, 8, 10, 5]);
+  });
+
+  it('keeps explicit samples and sources aligned on a broad tree', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'c1', 'c2', 'c3', 'n4', 'n5', 'n6', 'n7'],
+        levels: [
+          [0, 30, 5, 0],
+          [0, 10, 5, 1, 0, 10, 5, 2, 0, 10, 5, 3],
+          [0, 4, 1, 4, 0, 6, 1, 5, 0, 10, 1, 6, 0, 10, 1, 7],
+        ],
+        numSamples: 30,
+        sampleLevels: [
+          [30, 5],
+          [10, 5, 10, 5, 10, 5],
+          [4, 1, 6, 1, 10, 1, 10, 1],
+        ],
+      },
+      sourceByNameIndex: [
+        null,
+        { file: 'c1.ts' },
+        { file: 'c2.ts' },
+        { file: 'c3.ts' },
+        { file: 'n4.ts', lineNumber: 4 },
+        { file: 'n5.ts' },
+        { file: 'n6.ts' },
+        { file: 'n7.ts' },
+      ],
+      metadata: { units: 'nanoseconds' },
+    });
+
+    assert.equal(frame?.length, 8);
+    assert.equal(frame?.numSamples, 30);
+    assert.deepEqual(frame?.fields[0].values, [0, 1, 2, 2, 1, 2, 1, 2]);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'c1',
+      'n4',
+      'n5',
+      'c2',
+      'n6',
+      'c3',
+      'n7',
+    ]);
+    assert.deepEqual(
+      frame?.fields.find((f) => f.name === 'samples')?.values,
+      [30, 10, 4, 6, 10, 10, 10, 10],
+    );
+    assert.deepEqual(
+      frame?.fields.find((f) => f.name === 'selfSamples')?.values,
+      [5, 5, 1, 1, 5, 1, 5, 1],
+    );
+    assert.deepEqual(frame?.fields.find((f) => f.name === 'source')?.values, [
+      '',
+      'c1.ts',
+      'n4.ts:4',
+      'n5.ts',
+      'c2.ts',
+      'n6.ts',
+      'c3.ts',
+      'n7.ts',
+    ]);
+  });
+
+  it('keeps derived sample counts aligned with depth-first preorder', () => {
+    const frame = flamebearerToDataFrame({
+      flamebearer: {
+        names: ['root', 'left', 'right', 'a1', 'a2', 'b1'],
+        levels: [
+          [0, 2922000000, 300000000, 0],
+          [0, 1753000000, 900000000, 1, 0, 1169000000, 900000000, 2],
+          [
+            0, 1000000000, 400000000, 3, 0, 753000000, 300000000, 4, 0,
+            1169000000, 900000000, 5,
+          ],
+        ],
+      },
+      metadata: { units: 'nanoseconds', sampleRate: 1000 },
+    });
+
+    assert.equal(frame?.length, 6);
+    assert.equal(frame?.numSamples, 2922);
+    assert.deepEqual(frame?.fields[1].values, [
+      'root',
+      'left',
+      'a1',
+      'a2',
+      'right',
+      'b1',
+    ]);
+    assert.deepEqual(
+      frame?.fields.find((f) => f.name === 'samples')?.values,
+      [2922, 1753, 1000, 753, 1169, 1169],
+    );
+    assert.deepEqual(
+      frame?.fields.find((f) => f.name === 'selfSamples')?.values,
+      [300, 900, 400, 300, 900, 900],
+    );
+  });
+
+  it('decodes a deep chain in preorder', () => {
+    const depth = 64;
+    const names = Array.from({ length: depth + 1 }, (_, index) => `n${index}`);
+    const levels: number[][] = [[0, depth, 0, 0]];
+    for (let levelIndex = 1; levelIndex <= depth; levelIndex++) {
+      levels.push([0, depth - levelIndex, 0, levelIndex]);
+    }
+
+    const frame = flamebearerToDataFrame({
+      flamebearer: { names, levels },
+    });
+
+    assert.equal(frame?.length, depth + 1);
+    assert.deepEqual(
+      frame?.fields[0].values,
+      Array.from({ length: depth + 1 }, (_, index) => index),
+    );
+    assert.equal(frame?.fields[1].values[0], 'n0');
+    assert.equal(frame?.fields[1].values[depth], `n${depth}`);
+  });
+
+  it('decodes a wide fan-out in level order', () => {
+    const width = 500;
+    const names = [
+      'root',
+      ...Array.from({ length: width }, (_, index) => `c${index}`),
+    ];
+    const level: number[] = [];
+    for (let index = 0; index < width; index++) {
+      level.push(0, 1, 0, index + 1);
+    }
+
+    const frame = flamebearerToDataFrame({
+      flamebearer: { names, levels: [[0, width, 0, 0], level] },
+    });
+
+    assert.equal(frame?.length, width + 1);
+    assert.equal(frame?.fields[1].values[0], 'root');
+    assert.equal(frame?.fields[1].values[1], 'c0');
+    assert.equal(frame?.fields[1].values[width], `c${width - 1}`);
+  });
+});
+
 describe('top table density', () => {
   it('keeps the renderer compact by default', () => {
     assert.deepEqual(getTableDensityMetrics(), {

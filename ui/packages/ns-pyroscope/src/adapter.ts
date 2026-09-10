@@ -113,13 +113,13 @@ function convertSingleFlamebearer(
   if (levels[0].length !== 1 || levels[0][0].total <= 0) return undefined;
 
   for (let levelIndex = 1; levelIndex < levels.length; levelIndex++) {
-    const parents = levels[levelIndex - 1];
+    // The range index is bounded to this parent level and rebuilt for the
+    // next one; it is never retained across levels or conversions.
+    const parentIndex = buildParentRangeIndex(levels[levelIndex - 1]);
     for (const node of levels[levelIndex]) {
-      const matchingParents = parents.filter((parent) =>
-        isWithinParent(node, parent),
-      );
-      if (matchingParents.length !== 1) return undefined;
-      matchingParents[0].children.push(node);
+      const parent = findOnlyParent(parentIndex, node);
+      if (!parent) return undefined;
+      parent.children.push(node);
     }
   }
 
@@ -138,7 +138,7 @@ function convertSingleFlamebearer(
   const stack = [levels[0][0]];
 
   while (stack.length > 0) {
-    const node = stack.shift();
+    const node = stack.pop();
     if (!node) return undefined;
     const label = flamebearer.names[node.nameIndex];
     if (label === undefined) return undefined;
@@ -150,7 +150,15 @@ function convertSingleFlamebearer(
     sampleValues.push(node.totalSamples ?? 0);
     selfSampleValues.push(node.selfSamples ?? 0);
     sourceValues.push(sourceToString(sourceByNameIndex?.[node.nameIndex]) ?? '');
-    stack.unshift(...node.children);
+    // Push children in reverse so popping yields the previous shift/unshift
+    // preorder without array-front moves or a spread argument limit.
+    for (
+      let childIndex = node.children.length - 1;
+      childIndex >= 0;
+      childIndex--
+    ) {
+      stack.push(node.children[childIndex]);
+    }
   }
 
   const length = labels.length;
@@ -441,6 +449,112 @@ function isWithinParent(node: Node, parent: Node): boolean {
       ? node.start >= parent.start && node.start <= parentEnd
       : node.start >= parent.start && node.start < parentEnd;
   return startsInside && nodeEnd <= parentEnd + FLAMEBEARER_ROUNDING_TOLERANCE;
+}
+
+// Range index over one decoded parent level. `parents` is a sorted copy of the
+// level by start: the original level keeps its order so child link order (and
+// therefore the emitted preorder) never depends on the index. `maxEnds` is a
+// flat segment tree holding the maximum parent end per segment, so a candidate
+// prefix can be pruned without scanning every parent.
+type ParentRangeIndex = {
+  parents: Node[];
+  maxEnds: Float64Array;
+  size: number;
+};
+
+function buildParentRangeIndex(parents: Node[]): ParentRangeIndex {
+  const sorted = parents.slice().sort((a, b) => a.start - b.start);
+  let size = 1;
+  while (size < sorted.length) size *= 2;
+  const maxEnds = new Float64Array(size * 2).fill(Number.NEGATIVE_INFINITY);
+  for (let index = 0; index < sorted.length; index++) {
+    maxEnds[size + index] = sorted[index].start + sorted[index].total;
+  }
+  for (let index = size - 1; index >= 1; index--) {
+    maxEnds[index] = Math.max(maxEnds[index * 2], maxEnds[index * 2 + 1]);
+  }
+  return { parents: sorted, maxEnds, size };
+}
+
+// Number of parents whose start is at most `start`. Sorted starts make this the
+// length of the prefix that can hold a match, because isWithinParent requires
+// `node.start >= parent.start`.
+function countParentsStartingAtMost(parents: Node[], start: number): number {
+  let low = 0;
+  let high = parents.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (parents[mid].start <= start) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return low;
+}
+
+// Conservative segment test: true when a segment whose maximum parent end is
+// `maxEnd` can still contain a parent accepted by isWithinParent for `node`.
+// Every condition below is implied by the predicate, so false can only discard
+// segments that hold no match.
+function segmentMayContainParent(maxEnd: number, node: Node): boolean {
+  if (node.total === 0) {
+    // Zero-width nodes are allowed to touch the parent end exactly.
+    if (maxEnd < node.start) return false;
+  } else if (maxEnd <= node.start) {
+    // Non-zero-width nodes must start strictly inside the parent.
+    return false;
+  }
+  return node.start + node.total <= maxEnd + FLAMEBEARER_ROUNDING_TOLERANCE;
+}
+
+// Index of the smallest matching parent in [from, to), or -1. Right children
+// are pushed before left ones, so leaves are visited in ascending index order
+// and returning at the first passing leaf yields the smallest match; the caller
+// can then search the remainder. Leaves are verified with the untouched
+// isWithinParent predicate to keep the arithmetic exact.
+function findParentIndexInRange(
+  index: ParentRangeIndex,
+  node: Node,
+  from: number,
+  to: number,
+): number {
+  const { parents, maxEnds, size } = index;
+  const treeNodes: number[] = [1];
+  const segmentStarts: number[] = [0];
+  const segmentEnds: number[] = [size];
+  while (treeNodes.length > 0) {
+    const treeNode = treeNodes.pop()!;
+    const segmentStart = segmentStarts.pop()!;
+    const segmentEnd = segmentEnds.pop()!;
+    if (segmentStart >= to || segmentEnd <= from) continue;
+    if (!segmentMayContainParent(maxEnds[treeNode], node)) continue;
+    if (segmentEnd - segmentStart === 1) {
+      if (!isWithinParent(node, parents[segmentStart])) continue;
+      return segmentStart;
+    }
+    const mid = (segmentStart + segmentEnd) >>> 1;
+    treeNodes.push(treeNode * 2 + 1);
+    segmentStarts.push(mid);
+    segmentEnds.push(segmentEnd);
+    treeNodes.push(treeNode * 2);
+    segmentStarts.push(segmentStart);
+    segmentEnds.push(mid);
+  }
+  return -1;
+}
+
+// Exactly-one parent resolution: undefined when no parent matches or when a
+// second match is found. All possible matches start at most at `node.start`,
+// so only that prefix is searched.
+function findOnlyParent(index: ParentRangeIndex, node: Node): Node | undefined {
+  const limit = countParentsStartingAtMost(index.parents, node.start);
+  const first = findParentIndexInRange(index, node, 0, limit);
+  if (first < 0) return undefined;
+  if (findParentIndexInRange(index, node, first + 1, limit) >= 0) {
+    return undefined;
+  }
+  return index.parents[first];
 }
 
 function isNames(value: unknown): value is string[] {
