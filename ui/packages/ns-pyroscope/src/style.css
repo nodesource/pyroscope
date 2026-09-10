@@ -77,6 +77,16 @@
   overflow: auto;
 }
 
+/* Flame Graph-only view renders .fg-graph as a direct child of the fixed-height
+   .fg-body (Both/Table wrap it in .fg-horizontal-graph/.fg-table-container
+   instead). Without a height cap it grows to its content height
+   (depth * PIXELS_PER_LEVEL) and .fg-body's overflow: hidden clips it with no
+   scrollable ancestor, making deep profiles unreachable in this view. */
+.ns-pyroscope .fg-body > .fg-graph {
+  height: 100%;
+  min-height: 0;
+}
+
 .ns-pyroscope .fg-tt-container {
   padding: 0.5rem 0 0;
 }
