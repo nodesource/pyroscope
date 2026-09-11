@@ -322,7 +322,7 @@ export function walkTree(
   let collapsedItemRendered: LevelItem | undefined = undefined;
 
   while (stack.length > 0) {
-    const { item, levelOffset } = stack.shift()!;
+    const { item, levelOffset } = stack.pop()!;
     let curBarTicks = item.value;
     const muted = curBarTicks * pixelsPerTick <= MUTE_THRESHOLD;
     const width =
@@ -367,12 +367,12 @@ export function walkTree(
 
     const nextList = direction === 'children' ? item.children : item.parents;
     if (nextList) {
-      stack.unshift(
-        ...nextList.map((c) => ({
-          item: c,
+      for (let i = nextList.length - 1; i >= 0; i--) {
+        stack.push({
+          item: nextList[i],
           levelOffset: levelOffset + offsetModifier,
-        })),
-      );
+        });
+      }
     }
   }
 }
