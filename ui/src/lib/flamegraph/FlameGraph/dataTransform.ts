@@ -198,14 +198,16 @@ export class CollapsedMapBuilder {
   addTree(root: LevelItem) {
     const stack = [root];
     while (stack.length) {
-      const current = stack.shift()!;
+      const current = stack.pop()!;
 
       if (current.parents?.length) {
         this.addItem(current, current.parents[0]);
       }
 
       if (current.children.length) {
-        stack.unshift(...current.children);
+        for (let i = current.children.length - 1; i >= 0; i--) {
+          stack.push(current.children[i]);
+        }
       }
     }
   }
