@@ -7,6 +7,42 @@ This document provides context and guidance for AI coding assistants (Claude, Cu
 Pyroscope is a horizontally scalable, highly available, multi-tenant continuous profiling aggregation system. 
 It's designed to store and query profiling data at scale, similar to how Prometheus works for metrics and Loki for logs.
 
+## NodeSource fork scope
+
+This is a NodeSource-maintained fork of Grafana Pyroscope. The primary NodeSource-specific work lives in the frontend:
+
+- **Standalone UI**: `ui/src/` — the Vite/React UI served by the Go binary. The flamegraph renderer in `ui/src/lib/flamegraph/` is a vendored, stripped-down copy of `@grafana/flamegraph` v13.0.1; read `ui/src/lib/flamegraph/VENDORED.md` for its provenance, the list of removed upstream features (diff mode, CallTree view, NewUI path, Grafana Assistant), and how to diff against upstream before editing it.
+- **Embeddable package**: `ui/packages/ns-pyroscope/` — published as `@ns-private/pyroscope` for the N|Solid Console. See "Publishing the NodeSource UI package" below before publishing.
+
+Both consumers share the flamegraph renderer; changes under `ui/src/lib/flamegraph/` can affect the standalone UI **and** the published embed package. Do not treat that code as untouched vendor code.
+
+### Embed package contracts (`ui/packages/ns-pyroscope/`)
+
+- **Public API**: `Pyroscope` component plus types from `src/types.ts` (`Flamebearer`, `FlamebearerProfile`, `SourceLocation`, `PyroscopeProps`). Read `src/index.tsx`, `src/types.ts`, `src/index.d.ts`, and `src/adapter.ts` together before changing the contract.
+- **Type declarations**: `src/index.d.ts` is maintained separately and copied into `dist/index.d.ts` by the build. Keep it synchronized with `types.ts` and the runtime exports.
+- **Profile data**: `flamebearer.levels` encode nanosecond durations; `numSamples`/`sampleLevels` encode real sample counts. They are **not** interchangeable — temporal profiles report both, and the adapter applies units accordingly. `sourceByNameIndex` (parallel to `names`) carries optional source file/URL/line/column/function metadata rendered in tooltips and exposed via context-menu copy actions.
+- **Host compatibility**: peer dependencies allow React 18.2 and 19 — preserve host (N|Solid Console) compatibility, not just standalone React 19 behavior.
+- **Style isolation**: `vite.config.ts` scopes all CSS under `.ns-pyroscope` and externalizes React/ReactDOM; `src/index.tsx` wraps the renderer with `.ns-pyroscope`/`data-theme="dark"`. Preserve isolation from the host console.
+- **No `prepack` hook**: builds are not automatic — always run the workspace `build` explicitly before publishing.
+
+### Regression-sensitive behavior
+
+When touching the embed or shared renderer, check the existing tests (`src/adapter.test.ts`, `src/renderer.test.ts`, `src/sandwich.test.ts`, `src/traversal.test.ts`, and `e2e/embedder-scroll.spec.ts`) for these invariants:
+
+- **Transient refresh retention**: `src/index.tsx` keeps the last valid `DataFrame` mounted when a refresh briefly delivers non-renderable data (e.g. dynamic eBPF symbolization windows), preserving focus and expanded groups across the transition. Distinguish this from a genuine profile switch in any new tests.
+- `isContinuousProfileView` is forwarded to the renderer's `keepFocusOnDataChange` behavior.
+- Sample counts vs. units correctness, source locations in tooltips, copy function/location from context menus, and Flame Graph-only view scrolling to deepest frames are covered by tests; don't regress them silently.
+
+Validation from `ui/`:
+
+```sh
+yarn workspace @ns-private/pyroscope type-check
+yarn workspace @ns-private/pyroscope test
+yarn workspace @ns-private/pyroscope build
+```
+
+Also run tests for the affected standalone/shared-renderer code (`ui/src/...`) when you change `ui/src/lib/flamegraph/`.
+
 **Key Characteristics:**
 - Written in **Go**
 - Microservices-based architecture inspired by Cortex/Mimir/Loki
@@ -93,7 +129,7 @@ The frontend lives in `ui/` and is a dependency-minimal rewrite of the old `publ
 
 ### Testing
 - **Go**: Standard `testing` package, testify for assertions
-- **Frontend**: Vitest (`yarn test` from `ui/`)
+- **Frontend**: Node's built-in test runner (`node --test`, via `yarn test` from `ui/`)
 
 ## Development Workflow
 
@@ -117,6 +153,31 @@ make frontend/build
 # Docker image
 make GOOS=linux GOARCH=amd64 docker-image/pyroscope/build
 ```
+
+### Publishing the NodeSource UI package
+
+This procedure publishes `@ns-private/pyroscope`, not the Go server or the standalone UI. Use **Yarn Berry from `ui/`**, rather than `npm publish` or pnpm. Read `ui/packages/ns-pyroscope/package.json` for the current version, scripts, and `publishConfig.registry`; keep registry configuration there as the source of truth.
+
+1. Confirm the intended release version with the user and check published versions:
+   ```bash
+   cd ui
+   yarn npm info @ns-private/pyroscope --fields versions
+   ```
+   Verify the lookup uses the intended internal registry. If lookup or authentication fails, resolve the configuration before proceeding; never fall back to the public registry.
+2. Prepare an unpublished version in the package manifest and validate the release contents:
+   ```bash
+   yarn workspace @ns-private/pyroscope type-check
+   yarn workspace @ns-private/pyroscope test
+   yarn workspace @ns-private/pyroscope build
+   ```
+   The package has no `prepack` build hook: explicitly build before publishing so `dist/` matches the source. Run additional focused tests for affected shared UI code.
+3. **Only after explicit user authorization to publish**, run:
+   ```bash
+   yarn workspace @ns-private/pyroscope npm publish --tag latest
+   ```
+4. Verify the released version is available from the intended registry. Updating the consuming console's dependency and lockfile is a separate change in that repository.
+
+Keep credentials out of documentation and commits. Publishing a package does not authorize pushing Git branches or tags.
 
 ### Code Generation
 
