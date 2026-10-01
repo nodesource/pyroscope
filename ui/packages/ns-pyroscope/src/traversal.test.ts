@@ -449,7 +449,7 @@ describe('CollapsedMapBuilder.addTree', () => {
     }
     assert.equal(collapseMapOf(wide).size(), 0);
 
-    let deep = node(0, 0, 100);
+    const deep = node(0, 0, 100);
     let tip = deep;
     for (let i = 1; i <= 4; i++) {
       const child = node(i, i, 100);

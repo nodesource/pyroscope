@@ -45,7 +45,10 @@ describe('CollapsedMap.isAllExpanded', () => {
   });
 
   it('returns false for mixed collapsed and expanded groups', () => {
-    const map = mapOf(groupConfig(false, [item()]), groupConfig(true, [item()]));
+    const map = mapOf(
+      groupConfig(false, [item()]),
+      groupConfig(true, [item()]),
+    );
     assert.equal(map.isAllExpanded(), false);
   });
 

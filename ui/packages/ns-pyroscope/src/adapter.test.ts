@@ -149,17 +149,72 @@ describe('flamebearerToDataFrame', () => {
     };
     const fallbacks: FlamebearerProfile[] = [
       // numSamples is not a safe non-negative integer
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: -1, sampleLevels: [[100, 10], [90, 20]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: -1,
+          sampleLevels: [
+            [100, 10],
+            [90, 20],
+          ],
+        },
+      },
       // fewer levels than levels
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: 100,
+          sampleLevels: [[100, 10]],
+        },
+      },
       // more levels than levels
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90, 20], [1, 1]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: 100,
+          sampleLevels: [
+            [100, 10],
+            [90, 20],
+            [1, 1],
+          ],
+        },
+      },
       // not two integers per node (odd length)
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: 100,
+          sampleLevels: [[100, 10], [90]],
+        },
+      },
       // selfSamples greater than totalSamples
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90, 95]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: 100,
+          sampleLevels: [
+            [100, 10],
+            [90, 95],
+          ],
+        },
+      },
       // non-integer count
-      { ...base, flamebearer: { ...base.flamebearer, numSamples: 100, sampleLevels: [[100, 10], [90.5, 20]] } },
+      {
+        ...base,
+        flamebearer: {
+          ...base.flamebearer,
+          numSamples: 100,
+          sampleLevels: [
+            [100, 10],
+            [90.5, 20],
+          ],
+        },
+      },
     ];
 
     for (const profile of fallbacks) {
@@ -186,7 +241,10 @@ describe('flamebearerToDataFrame', () => {
     });
     assert.equal(frame?.length, 1);
     assert.equal(frame?.numSamples, undefined);
-    assert.equal(frame?.fields.find((f) => f.name === 'samples'), undefined);
+    assert.equal(
+      frame?.fields.find((f) => f.name === 'samples'),
+      undefined,
+    );
   });
 
   it('derives sample counts from the sampleRate for temporal profiles', () => {
@@ -224,7 +282,10 @@ describe('flamebearerToDataFrame', () => {
       },
       metadata: { units: 'nanoseconds' },
     });
-    assert.equal(noRate?.fields.find((f) => f.name === 'samples'), undefined);
+    assert.equal(
+      noRate?.fields.find((f) => f.name === 'samples'),
+      undefined,
+    );
 
     // Count profile, even with a sampleRate, keeps count semantics only.
     const count = flamebearerToDataFrame({
@@ -234,7 +295,10 @@ describe('flamebearerToDataFrame', () => {
       },
       metadata: { units: 'samples', sampleRate: 1000 },
     });
-    assert.equal(count?.fields.find((f) => f.name === 'samples'), undefined);
+    assert.equal(
+      count?.fields.find((f) => f.name === 'samples'),
+      undefined,
+    );
   });
 
   for (const [name, profile] of [
@@ -353,7 +417,10 @@ describe('flamebearerToDataFrame sourceByNameIndex', () => {
         names: ['n0', 'n1', 'n2', 'n3', 'n4', 'n5'],
         levels: [
           [0, 600, 60, 0],
-          [0, 100, 20, 1, 0, 100, 20, 2, 0, 100, 20, 3, 0, 100, 20, 4, 0, 100, 20, 5],
+          [
+            0, 100, 20, 1, 0, 100, 20, 2, 0, 100, 20, 3, 0, 100, 20, 4, 0, 100,
+            20, 5,
+          ],
         ],
       },
       sourceByNameIndex: [
@@ -379,10 +446,7 @@ describe('flamebearerToDataFrame sourceByNameIndex', () => {
   it('never parses ambiguous path strings', () => {
     const frame = flamebearerToDataFrame({
       ...baseProfile,
-      sourceByNameIndex: [
-        null,
-        { file: 'src/app.ts:100', lineNumber: 5 },
-      ],
+      sourceByNameIndex: [null, { file: 'src/app.ts:100', lineNumber: 5 }],
     });
     assert.equal(sourceField(frame)?.values[1], 'src/app.ts:100:5');
   });
@@ -427,7 +491,10 @@ describe('flamebearerToDataFrame sourceByNameIndex', () => {
 
     // Special characters survive the adapter raw — React escapes at render.
     const raw = sourceField(frame)?.values[1];
-    assert.equal(raw, 'https://console.example.com/<app>/main.js?a=1&b=2>:11:2');
+    assert.equal(
+      raw,
+      'https://console.example.com/<app>/main.js?a=1&b=2>:11:2',
+    );
     assert.match(raw, /[<>&]/);
   });
 

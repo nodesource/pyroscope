@@ -96,15 +96,14 @@ const FlameGraphTooltip = ({
             ''
           )}
         </p>
-        {source && (
-          <p className="fg-tooltip-source">{source}</p>
-        )}
+        {source && <p className="fg-tooltip-source">{source}</p>}
         <p className="fg-tooltip-last">
           {tooltipData.unitTitle}
           <br />
           Total: <b>{tooltipData.unitValue}</b> ({tooltipData.percentValue}%)
           <br />
-          Self: <b>{tooltipData.unitSelf}</b> ({tooltipData.percentSelf}%){tooltipData.samples != null && (
+          Self: <b>{tooltipData.unitSelf}</b> ({tooltipData.percentSelf}%)
+          {tooltipData.samples != null && (
             <>
               <br />
               Samples: <b>{tooltipData.samples}</b>

@@ -85,15 +85,15 @@ function convertSingleFlamebearer(
   // for temporal geometry (nanoseconds) so rate-derived counts are never shown
   // for count/byte profiles.
   const producerCounts = decodeSampleLevels(flamebearer);
-  const derivedCounts = producerCounts ?? deriveSampleLevelsFromRate(flamebearer, profile);
+  const derivedCounts =
+    producerCounts ?? deriveSampleLevelsFromRate(flamebearer, profile);
   const sampleCounts = derivedCounts?.levelCounts;
   const numSamples = derivedCounts?.numSamples;
   // A profile carrying no sample evidence (neither supplied nor derivable)
   // cannot be labelled with sample numbers; it still renders its (temporal)
   // duration.
   const hasSamples =
-    sampleCounts !== undefined &&
-    isNonNegativeInteger(numSamples);
+    sampleCounts !== undefined && isNonNegativeInteger(numSamples);
 
   const levels: Node[][] = [];
   for (
@@ -149,7 +149,9 @@ function convertSingleFlamebearer(
     selfValues.push(node.self);
     sampleValues.push(node.totalSamples ?? 0);
     selfSampleValues.push(node.selfSamples ?? 0);
-    sourceValues.push(sourceToString(sourceByNameIndex?.[node.nameIndex]) ?? '');
+    sourceValues.push(
+      sourceToString(sourceByNameIndex?.[node.nameIndex]) ?? '',
+    );
     // Push children in reverse so popping yields the previous shift/unshift
     // preorder without array-front moves or a spread argument limit.
     for (
@@ -250,10 +252,7 @@ function decodeSampleLevels(
   if (sampleLevels == null) return undefined;
 
   const { levels } = flamebearer;
-  if (
-    !Array.isArray(sampleLevels) ||
-    sampleLevels.length !== levels.length
-  ) {
+  if (!Array.isArray(sampleLevels) || sampleLevels.length !== levels.length) {
     return undefined;
   }
 
@@ -331,11 +330,11 @@ function deriveSampleLevelsFromRate(
       // Rounding may nudge selfSamples a hair over totalSamples for nodes
       // whose self and total are nearly equal; clamp to stay within the
       // renderer contract (selfSamples <= totalSamples).
-      const selfSamples = Math.min(
-        totalSamples,
-        Math.round(selfNs / periodNs),
-      );
-      if (!isNonNegativeInteger(totalSamples) || !isNonNegativeInteger(selfSamples)) {
+      const selfSamples = Math.min(totalSamples, Math.round(selfNs / periodNs));
+      if (
+        !isNonNegativeInteger(totalSamples) ||
+        !isNonNegativeInteger(selfSamples)
+      ) {
         return undefined;
       }
       counts.push(totalSamples, selfSamples);
@@ -352,7 +351,9 @@ function deriveSampleLevelsFromRate(
 // and only used as display fallback. Line/column are appended only when they
 // are safe non-negative integers. The path is never parsed or split, so
 // ambiguous strings like "foo.js:12" are kept verbatim.
-function sourceToString(location: SourceLocation | null | undefined): string | undefined {
+function sourceToString(
+  location: SourceLocation | null | undefined,
+): string | undefined {
   if (location == null || typeof location !== 'object') return undefined;
   let path: string | undefined;
   if (typeof location.file === 'string' && location.file.length > 0) {

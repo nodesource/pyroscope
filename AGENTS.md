@@ -114,7 +114,7 @@ Pyroscope uses a **microservices architecture** where a single binary can run di
 ## Tech Stack
 
 ### Backend
-- **Language**: Go 1.25 (see `go.mod`)
+- **Language**: Go (minimum version and toolchain are specified in `go.mod`)
 - **RPC**: gRPC with Connect protocol
 - **Storage**: Parquet, TSDB
 - **Hash Ring**: Consistent hashing with memberlist (gossip protocol)
@@ -136,7 +136,7 @@ The frontend lives in `ui/` and is a dependency-minimal rewrite of the old `publ
 ### Setup & Build
 
 ```bash
-# Prerequisites: Go 1.25, Docker, Node, Yarn 4 (Berry).
+# Prerequisites: Go toolchain from go.mod, Docker, Node, Yarn 4 (Berry).
 # All other build tools auto-download to .tmp/bin/
 
 # Build backend

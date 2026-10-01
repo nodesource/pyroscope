@@ -13,7 +13,8 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   // Keep transient traces/screenshots out of the repo tree.
-  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR ?? '/tmp/ns-pyroscope-e2e-results',
+  outputDir:
+    process.env.PLAYWRIGHT_OUTPUT_DIR ?? '/tmp/ns-pyroscope-e2e-results',
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'retain-on-failure',

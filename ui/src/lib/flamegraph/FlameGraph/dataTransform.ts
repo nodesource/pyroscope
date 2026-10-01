@@ -342,10 +342,10 @@ export class FlameGraphDataContainer {
     this.sampleField = data.fields.find((f) => f.name === 'samples');
     this.selfSampleField = data.fields.find((f) => f.name === 'selfSamples');
     this.sourceField = data.fields.find((f) => f.name === 'source');
-    this.numSamples = Number.isSafeInteger(data.numSamples) &&
-      data.numSamples! >= 0
-      ? data.numSamples
-      : undefined;
+    this.numSamples =
+      Number.isSafeInteger(data.numSamples) && data.numSamples! >= 0
+        ? data.numSamples
+        : undefined;
 
     const enumConfig = this.labelField?.config?.type?.enum;
     // Labels can come as enum-encoded indexes (DataFrame enum field, where

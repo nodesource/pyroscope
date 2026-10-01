@@ -2,10 +2,11 @@
 // component (src/index.tsx), which imports the real embedder stylesheet
 // (src/style.css) through vite dev — so the browser sees exactly the CSS the
 // published package ships (same postcss scoping), without a package build.
-import React from 'react';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Pyroscope } from '../../src/index';
+import type { FlamebearerProfile } from '../../src/types';
 
 // Deep synthetic single-stack profile: 90 levels x ~22px per level puts the
 // flamegraph canvas at ~1980px, far taller than the embedder's viewport-derived
@@ -25,7 +26,7 @@ const sampleLevels: number[][] = levels.map((_, i) => [
   i % 5 === 0 ? 10 : 0,
 ]);
 
-const profile = {
+const profile: FlamebearerProfile = {
   version: 1,
   flamebearer: {
     names,
@@ -33,13 +34,47 @@ const profile = {
     sampleLevels,
     numSamples: 1000,
     format: 'single',
-    spyName: 'nodejs',
-    sampleRate: 100,
-    units: 'samples',
   },
-  metadata: { units: 'samples', sampleRate: 100 },
+  metadata: { units: 'samples', sampleRate: 100, spyName: 'nodejs' },
 };
 
-createRoot(document.getElementById('app')!).render(
-  <Pyroscope data={profile} isContinuousProfileView={true} />,
-);
+const emptyProfile: FlamebearerProfile = {
+  ...profile,
+  flamebearer: { ...profile.flamebearer, levels: [] },
+};
+
+const otherProfile: FlamebearerProfile = {
+  ...profile,
+  flamebearer: {
+    names: ['total', 'other_work'],
+    levels: [
+      [0, 2000, 0, 0],
+      [0, 2000, 2000, 1],
+    ],
+    numSamples: 2000,
+    sampleLevels: [
+      [2000, 0],
+      [2000, 2000],
+    ],
+    format: 'single',
+  },
+};
+
+export function Harness() {
+  const [data, setData] = useState<FlamebearerProfile>(
+    new URLSearchParams(window.location.search).has('empty')
+      ? emptyProfile
+      : profile,
+  );
+
+  return (
+    <>
+      <button onClick={() => setData(emptyProfile)}>Empty refresh</button>
+      <button onClick={() => setData({ ...profile })}>Valid refresh</button>
+      <button onClick={() => setData(otherProfile)}>Switch profile</button>
+      <Pyroscope data={data} isContinuousProfileView={true} />
+    </>
+  );
+}
+
+createRoot(document.getElementById('app')!).render(<Harness />);

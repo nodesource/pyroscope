@@ -54,9 +54,63 @@ async function switchView(page: Page, label: string) {
       page.locator('.fg-horizontal-graph .fg-canvas-wrapper'),
     ).toBeVisible();
   } else {
-    await expect(page.locator('.fg-tt-scroll .fg-tt-table').first()).toBeVisible();
+    await expect(
+      page.locator('.fg-tt-scroll .fg-tt-table').first(),
+    ).toBeVisible();
   }
 }
+
+test('transient empty refresh retains the view and focused function', async ({
+  page,
+}) => {
+  await switchView(page, 'Flame Graph');
+  await page.getByRole('button', { name: 'Expand all groups' }).click();
+  const canvas = page.locator('.fg-canvas-wrapper canvas').first();
+  const bounds = await canvas.boundingBox();
+  expect(bounds).not.toBeNull();
+  if (!bounds) throw new Error('Missing flamegraph canvas bounds');
+  await page.mouse.click(bounds.x + 100, bounds.y + 55);
+  await page.getByRole('menuitem', { name: 'Focus block' }).click();
+  const resetFocus = page.getByRole('button', { name: 'Remove focus' });
+  await expect(resetFocus).toBeVisible();
+  const focusedPill = page.locator('.fg-metadata-pill-group', {
+    has: resetFocus,
+  });
+  await expect(focusedPill).toHaveAttribute('title', 'fn_level_2');
+
+  for (const refresh of ['Empty refresh', 'Valid refresh']) {
+    await page.getByRole('button', { name: refresh, exact: true }).click();
+    await expect(page.getByText('No profile data available')).toHaveCount(0);
+    await expect(
+      page.locator('.fg-header-radio-label', { hasText: 'Flame Graph' }),
+    ).toHaveAttribute('data-checked', 'true');
+    await expect(resetFocus).toBeVisible();
+    await expect(focusedPill).toHaveAttribute('title', 'fn_level_2');
+  }
+});
+
+test('initial empty profile shows the empty state until valid data arrives', async ({
+  page,
+}) => {
+  await page.goto('/?empty');
+  await expect(page.getByRole('status')).toHaveText(
+    'No profile data available',
+  );
+  await page
+    .getByRole('button', { name: 'Valid refresh', exact: true })
+    .click();
+  await expect(page.getByText('No profile data available')).toHaveCount(0);
+  await expect(page.locator('.fg-canvas-wrapper canvas').first()).toBeVisible();
+});
+
+test('switching profiles displays the new profile', async ({ page }) => {
+  await page
+    .getByRole('button', { name: 'Switch profile', exact: true })
+    .click();
+  await switchView(page, 'Top Table');
+  await expect(page.getByText('other_work', { exact: true })).toBeVisible();
+  await expect(page.getByText('fn_level_1', { exact: true })).toHaveCount(0);
+});
 
 type ScrollSnapshot = {
   clientHeight: number;

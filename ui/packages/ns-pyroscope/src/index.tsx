@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   FlameGraph,
@@ -29,13 +29,11 @@ export function Pyroscope({
   // profiles without renderable levels. Keep the last valid frame mounted in
   // that case so the flamegraph's internal state (focus, group expansion)
   // survives the transition instead of resetting on a remount.
-  const lastFrameRef = useRef<DataFrame | undefined>(undefined);
-  useEffect(() => {
-    if (frame) {
-      lastFrameRef.current = frame;
-    }
-  }, [frame]);
-  const effectiveFrame = frame ?? lastFrameRef.current;
+  const [lastFrame, setLastFrame] = useState<DataFrame | undefined>(frame);
+  if (frame && frame !== lastFrame) {
+    setLastFrame(frame);
+  }
+  const effectiveFrame = frame ?? lastFrame;
 
   return (
     <div

@@ -18,8 +18,7 @@ import {
   nodeModulesSources,
 } from './contract.fixture.ts';
 
-const NS = (value: number) =>
-  value * 1_000_000_000;
+const NS = (value: number) => value * 1_000_000_000;
 
 function buildTemporalFrame({
   selfValues = [NS(0.3), NS(0.9)],
@@ -43,8 +42,18 @@ function buildTemporalFrame({
     config: { unit?: string };
   }> = [
     { name: 'level', type: 'number', values: [0, 1], config: {} },
-    { name: 'label', type: 'string', values: ['total', 'app.work'], config: {} },
-    { name: 'self', type: 'number', values: selfValues, config: { unit: 'ns' } },
+    {
+      name: 'label',
+      type: 'string',
+      values: ['total', 'app.work'],
+      config: {},
+    },
+    {
+      name: 'self',
+      type: 'number',
+      values: selfValues,
+      config: { unit: 'ns' },
+    },
     { name: 'value', type: 'number', values: values, config: { unit: 'ns' } },
   ];
   if (samples && selfSamples) {
@@ -117,8 +126,18 @@ describe('metadata pill', () => {
     const fields = [
       { name: 'level', type: 'number', values: [0, 1], config: {} },
       { name: 'label', type: 'string', values: ['total', 'x'], config: {} },
-      { name: 'self', type: 'number', values: [300, 900], config: { unit: 'short' } },
-      { name: 'value', type: 'number', values: [2922, 1753], config: { unit: 'short' } },
+      {
+        name: 'self',
+        type: 'number',
+        values: [300, 900],
+        config: { unit: 'short' },
+      },
+      {
+        name: 'value',
+        type: 'number',
+        values: [2922, 1753],
+        config: { unit: 'short' },
+      },
     ] as never;
     const container = new FlameGraphDataContainer(
       { fields, length: 2 } as never,
@@ -153,7 +172,13 @@ describe('tooltip samples', () => {
     });
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue([0, 1]), itemIndexes: [0, 1], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue([0, 1]),
+        itemIndexes: [0, 1],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.samples, '2,922');
@@ -169,7 +194,13 @@ describe('tooltip samples', () => {
     });
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue([1, 2]), itemIndexes: [1, 2], children: [], level: 1 },
+      {
+        start: 0,
+        value: container.getValue([1, 2]),
+        itemIndexes: [1, 2],
+        children: [],
+        level: 1,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.samples, '2,922');
@@ -186,7 +217,13 @@ describe('tooltip samples', () => {
     // The callers tree trimmed a merged node to half its original value.
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: NS(1.46), itemIndexes: [0, 1], children: [], level: 0 },
+      {
+        start: 0,
+        value: NS(1.46),
+        itemIndexes: [0, 1],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.samples, '1,461');
@@ -196,7 +233,13 @@ describe('tooltip samples', () => {
     const container = buildTemporalFrame();
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue(0), itemIndexes: [0], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue(0),
+        itemIndexes: [0],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.samples, undefined);
@@ -206,8 +249,18 @@ describe('tooltip samples', () => {
     const fields = [
       { name: 'level', type: 'number', values: [0, 1], config: {} },
       { name: 'label', type: 'string', values: ['total', 'x'], config: {} },
-      { name: 'self', type: 'number', values: [300, 900], config: { unit: 'short' } },
-      { name: 'value', type: 'number', values: [2922, 1753], config: { unit: 'short' } },
+      {
+        name: 'self',
+        type: 'number',
+        values: [300, 900],
+        config: { unit: 'short' },
+      },
+      {
+        name: 'value',
+        type: 'number',
+        values: [2922, 1753],
+        config: { unit: 'short' },
+      },
     ] as never;
     const container = new FlameGraphDataContainer(
       { fields, length: 2 } as never,
@@ -215,7 +268,13 @@ describe('tooltip samples', () => {
     );
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue(0), itemIndexes: [0], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue(0),
+        itemIndexes: [0],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.samples, '2,922');
@@ -277,7 +336,13 @@ describe('tooltip source', () => {
     });
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue([0, 1]), itemIndexes: [1], children: [], level: 1 },
+      {
+        start: 0,
+        value: container.getValue([0, 1]),
+        itemIndexes: [1],
+        children: [],
+        level: 1,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, 'app.work.ts:42:7');
@@ -287,7 +352,13 @@ describe('tooltip source', () => {
     const container = buildTemporalFrame();
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue(0), itemIndexes: [0], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue(0),
+        itemIndexes: [0],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, undefined);
@@ -301,7 +372,13 @@ describe('tooltip source', () => {
     });
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue([0, 1]), itemIndexes: [0, 1], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue([0, 1]),
+        itemIndexes: [0, 1],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, 'a.ts:1');
@@ -315,7 +392,13 @@ describe('tooltip source', () => {
     });
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue([0, 1]), itemIndexes: [0, 1], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue([0, 1]),
+        itemIndexes: [0, 1],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, undefined);
@@ -323,15 +406,20 @@ describe('tooltip source', () => {
 
   it('keeps the Console contract path raw in tooltip text data (no pre-escape)', () => {
     const frame = flamebearerToDataFrame(consoleShapeProfile);
-    const container = new FlameGraphDataContainer(
-      frame as never,
-      { collapsing: false },
-    );
+    const container = new FlameGraphDataContainer(frame as never, {
+      collapsing: false,
+    });
 
     // The first 'main' row (nameIndex 1) carries the HTML-special-character path.
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue(1), itemIndexes: [1], children: [], level: 1 },
+      {
+        start: 0,
+        value: container.getValue(1),
+        itemIndexes: [1],
+        children: [],
+        level: 1,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, consoleShapeSources[1]);
@@ -340,7 +428,13 @@ describe('tooltip source', () => {
     // The second 'main' row (nameIndex 2) resolves to its own source.
     const otherMain = getTooltipData(
       container,
-      { start: 0, value: container.getValue(3), itemIndexes: [3], children: [], level: 1 },
+      {
+        start: 0,
+        value: container.getValue(3),
+        itemIndexes: [3],
+        children: [],
+        level: 1,
+      },
       container.getValue(0),
     );
     assert.equal(otherMain.source, consoleShapeSources[3]);
@@ -348,7 +442,13 @@ describe('tooltip source', () => {
     // Merging the two 'main' rows hides the location entirely.
     const merged = getTooltipData(
       container,
-      { start: 0, value: container.getValue([1, 3]), itemIndexes: [1, 3], children: [], level: 0 },
+      {
+        start: 0,
+        value: container.getValue([1, 3]),
+        itemIndexes: [1, 3],
+        children: [],
+        level: 0,
+      },
       container.getValue(0),
     );
     assert.equal(merged.source, undefined);
@@ -356,15 +456,20 @@ describe('tooltip source', () => {
 
   it('shows the normalized file (not the absolute url) for node_modules', () => {
     const frame = flamebearerToDataFrame(nodeModulesProfile);
-    const container = new FlameGraphDataContainer(
-      frame as never,
-      { collapsing: false },
-    );
+    const container = new FlameGraphDataContainer(frame as never, {
+      collapsing: false,
+    });
 
     assert.equal(container.getSource(1), nodeModulesSources[1]);
     const tooltip = getTooltipData(
       container,
-      { start: 0, value: container.getValue(1), itemIndexes: [1], children: [], level: 1 },
+      {
+        start: 0,
+        value: container.getValue(1),
+        itemIndexes: [1],
+        children: [],
+        level: 1,
+      },
       container.getValue(0),
     );
     assert.equal(tooltip.source, 'node_modules/lodash/index.js:3:1');
@@ -377,9 +482,24 @@ describe('collapsed group source', () => {
       {
         fields: [
           { name: 'level', type: 'number', values: [0, 1, 2], config: {} },
-          { name: 'label', type: 'string', values: ['total', 'x', 'x'], config: {} },
-          { name: 'self', type: 'number', values: [0, 1, 1], config: { unit: 'ns' } },
-          { name: 'value', type: 'number', values: [2, 1, 1], config: { unit: 'ns' } },
+          {
+            name: 'label',
+            type: 'string',
+            values: ['total', 'x', 'x'],
+            config: {},
+          },
+          {
+            name: 'self',
+            type: 'number',
+            values: [0, 1, 1],
+            config: { unit: 'ns' },
+          },
+          {
+            name: 'value',
+            type: 'number',
+            values: [2, 1, 1],
+            config: { unit: 'ns' },
+          },
           { name: 'source', type: 'string', values: frameSources, config: {} },
         ],
         length: 3,
@@ -413,10 +533,30 @@ describe('collapsed group source', () => {
       {
         fields: [
           { name: 'level', type: 'number', values: [0, 1, 1, 2], config: {} },
-          { name: 'label', type: 'string', values: ['total', 'x', 'x', 'x'], config: {} },
-          { name: 'self', type: 'number', values: [0, 1, 1, 1], config: { unit: 'ns' } },
-          { name: 'value', type: 'number', values: [3, 1, 1, 1], config: { unit: 'ns' } },
-          { name: 'source', type: 'string', values: ['', 'a.ts:1', '', 'b.ts:2'], config: {} },
+          {
+            name: 'label',
+            type: 'string',
+            values: ['total', 'x', 'x', 'x'],
+            config: {},
+          },
+          {
+            name: 'self',
+            type: 'number',
+            values: [0, 1, 1, 1],
+            config: { unit: 'ns' },
+          },
+          {
+            name: 'value',
+            type: 'number',
+            values: [3, 1, 1, 1],
+            config: { unit: 'ns' },
+          },
+          {
+            name: 'source',
+            type: 'string',
+            values: ['', 'a.ts:1', '', 'b.ts:2'],
+            config: {},
+          },
         ],
         length: 4,
       } as never,
@@ -440,10 +580,30 @@ describe('collapsed group source', () => {
       {
         fields: [
           { name: 'level', type: 'number', values: [0, 1, 1, 2], config: {} },
-          { name: 'label', type: 'string', values: ['total', 'x', 'x', 'x'], config: {} },
-          { name: 'self', type: 'number', values: [0, 1, 1, 1], config: { unit: 'ns' } },
-          { name: 'value', type: 'number', values: [3, 1, 1, 1], config: { unit: 'ns' } },
-          { name: 'source', type: 'string', values: ['', 'a.ts:1', 'b.ts:2', ''], config: {} },
+          {
+            name: 'label',
+            type: 'string',
+            values: ['total', 'x', 'x', 'x'],
+            config: {},
+          },
+          {
+            name: 'self',
+            type: 'number',
+            values: [0, 1, 1, 1],
+            config: { unit: 'ns' },
+          },
+          {
+            name: 'value',
+            type: 'number',
+            values: [3, 1, 1, 1],
+            config: { unit: 'ns' },
+          },
+          {
+            name: 'source',
+            type: 'string',
+            values: ['', 'a.ts:1', 'b.ts:2', ''],
+            config: {},
+          },
         ],
         length: 4,
       } as never,
