@@ -40,4 +40,11 @@ export type FlamebearerProfile = {
 export type PyroscopeProps = {
   data?: FlamebearerProfile | null;
   isContinuousProfileView?: boolean;
+  // Enables the frame menu action. The stack includes the selected frame,
+  // excludes the synthetic total root, and retains flamebearer.names indexes
+  // so the host can resolve names it normalized for display.
+  onFrameDetails?: (selection: {
+    name: string;
+    callSite: Array<{ name: string; nameIndex: number }>;
+  }) => void;
 };

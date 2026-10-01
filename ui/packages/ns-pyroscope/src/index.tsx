@@ -7,6 +7,7 @@ import {
 import type { DataFrame } from '../../../src/lib/flamegraph/FlameGraph/dataTransform.ts';
 
 import { flamebearerToDataFrame } from './adapter.ts';
+import { createFrameDetailsMenu } from './frameDetails.ts';
 import type { PyroscopeProps } from './types.ts';
 
 import './style.css';
@@ -21,9 +22,14 @@ export type {
 export function Pyroscope({
   data,
   isContinuousProfileView = false,
+  onFrameDetails,
 }: PyroscopeProps) {
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const frame = useMemo(() => flamebearerToDataFrame(data), [data]);
+  const getExtraContextMenuButtons = useMemo(
+    () => createFrameDetailsMenu(onFrameDetails),
+    [onFrameDetails],
+  );
 
   // Dynamic refreshes (e.g. eBPF symbolization windows) can briefly deliver
   // profiles without renderable levels. Keep the last valid frame mounted in
@@ -48,6 +54,7 @@ export function Pyroscope({
             data={effectiveFrame}
             keepFocusOnDataChange={isContinuousProfileView}
             tableDensity="comfortable"
+            getExtraContextMenuButtons={getExtraContextMenuButtons}
           />
         ) : (
           <div className="ns-pyroscope-empty" role="status">

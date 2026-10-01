@@ -124,6 +124,7 @@ function convertSingleFlamebearer(
   }
 
   const labels: string[] = [];
+  const nameIndexes: number[] = [];
   const nodeLevels: number[] = [];
   const values: number[] = [];
   const selfValues: number[] = [];
@@ -144,6 +145,7 @@ function convertSingleFlamebearer(
     if (label === undefined) return undefined;
 
     labels.push(label);
+    nameIndexes.push(node.nameIndex);
     nodeLevels.push(node.level);
     values.push(node.total);
     selfValues.push(node.self);
@@ -193,6 +195,12 @@ function convertSingleFlamebearer(
       type: FieldType.number,
       values,
       config: { unit },
+    },
+    {
+      name: 'nameIndex',
+      type: FieldType.number,
+      values: nameIndexes,
+      config: {},
     },
   ];
 

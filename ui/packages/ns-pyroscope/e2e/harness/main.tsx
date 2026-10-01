@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Pyroscope } from '../../src/index';
-import type { FlamebearerProfile } from '../../src/types';
+import type { FlamebearerProfile, PyroscopeProps } from '../../src/types';
 
 // Deep synthetic single-stack profile: 90 levels x ~22px per level puts the
 // flamegraph canvas at ~1980px, far taller than the embedder's viewport-derived
@@ -60,11 +60,49 @@ const otherProfile: FlamebearerProfile = {
   },
 };
 
+const detailsProfile: FlamebearerProfile = {
+  flamebearer: {
+    names: ['worker', 'total', 'entry A', 'entry B', 'worker', 'total'],
+    levels: [
+      [0, 1000, 0, 1],
+      [0, 400, 100, 2, 0, 600, 100, 3],
+      [0, 300, 100, 0, 100, 500, 100, 4],
+      [0, 200, 200, 0, 200, 400, 400, 5],
+    ],
+  },
+  metadata: { units: 'samples', spyName: 'ebpf' },
+};
+
+const groupedDetailsProfile: FlamebearerProfile = {
+  flamebearer: {
+    names: ['worker', 'total', 'entry', 'bridge', 'leaf'],
+    levels: [
+      [0, 1000, 0, 1],
+      [0, 1000, 0, 2],
+      [0, 1000, 300, 3],
+      [0, 700, 200, 0],
+      [0, 500, 500, 4],
+    ],
+  },
+  metadata: { units: 'samples', spyName: 'ebpf' },
+};
+
+type FrameDetailsSelection = Parameters<
+  NonNullable<PyroscopeProps['onFrameDetails']>
+>[0];
+
 export function Harness() {
+  const params = new URLSearchParams(window.location.search);
+  const [selection, setSelection] = useState<FrameDetailsSelection>();
+  const [detailsEnabled, setDetailsEnabled] = useState(params.has('details'));
   const [data, setData] = useState<FlamebearerProfile>(
-    new URLSearchParams(window.location.search).has('empty')
+    params.has('empty')
       ? emptyProfile
-      : profile,
+      : params.has('groupedDetails')
+        ? groupedDetailsProfile
+        : params.has('detailsProfile')
+          ? detailsProfile
+          : profile,
   );
 
   return (
@@ -72,7 +110,21 @@ export function Harness() {
       <button onClick={() => setData(emptyProfile)}>Empty refresh</button>
       <button onClick={() => setData({ ...profile })}>Valid refresh</button>
       <button onClick={() => setData(otherProfile)}>Switch profile</button>
-      <Pyroscope data={data} isContinuousProfileView={true} />
+      {params.has('detailsProfile') && (
+        <>
+          <button onClick={() => setDetailsEnabled((enabled) => !enabled)}>
+            Toggle details callback
+          </button>
+          <output data-testid="frame-details">
+            {JSON.stringify(selection)}
+          </output>
+        </>
+      )}
+      <Pyroscope
+        data={data}
+        isContinuousProfileView={true}
+        onFrameDetails={detailsEnabled ? setSelection : undefined}
+      />
     </>
   );
 }

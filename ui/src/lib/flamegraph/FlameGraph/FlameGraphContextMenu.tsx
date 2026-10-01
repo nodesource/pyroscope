@@ -117,7 +117,15 @@ const FlameGraphContextMenu = ({
         }}
       />
       {extraButtons.map(({ label, icon, onClick }) => (
-        <MenuItem key={label} label={label} icon={icon} onClick={onClick} />
+        <MenuItem
+          key={label}
+          label={label}
+          icon={icon}
+          onClick={() => {
+            onMenuItemClick();
+            onClick();
+          }}
+        />
       ))}
       {collapsing && (
         <MenuGroup label="Grouping">
