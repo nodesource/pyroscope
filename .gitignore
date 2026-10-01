@@ -45,3 +45,4 @@ tools/k6/.env
 # Local Go workspace files — the repo builds in plain module mode
 /go.work
 /go.work.sum
+.codegraph
