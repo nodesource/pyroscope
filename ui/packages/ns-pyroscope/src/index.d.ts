@@ -40,6 +40,8 @@ export type FlamebearerProfile = {
 export type PyroscopeProps = {
   data?: FlamebearerProfile | null;
   isContinuousProfileView?: boolean;
+  // Controls the frame-menu copy action independently of details (default true).
+  showCopyFunction?: boolean;
   // Enables the frame menu action. The stack includes the selected frame,
   // excludes the synthetic total root, and retains flamebearer.names indexes
   // so the host can resolve names it normalized for display.

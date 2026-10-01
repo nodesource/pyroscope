@@ -56,6 +56,7 @@ type Props = {
   setCollapsedMap: (collapsedMap: CollapsedMap) => void;
   collapsing?: boolean;
   getExtraContextMenuButtons?: GetExtraContextMenuButtonsFunction;
+  showCopyFunction?: boolean;
 
   selectedView?: SelectedView;
   search: string;
@@ -82,6 +83,7 @@ const FlameGraphCanvas = ({
   setCollapsedMap,
   collapsing,
   getExtraContextMenuButtons,
+  showCopyFunction,
   selectedView,
   search,
 }: Props) => {
@@ -277,6 +279,7 @@ const FlameGraphCanvas = ({
             (i) => !i.collapsed,
           )}
           getExtraContextMenuButtons={getExtraContextMenuButtons}
+          showCopyFunction={showCopyFunction}
           selectedView={selectedView}
           search={search}
         />

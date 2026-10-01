@@ -54,6 +54,7 @@ export type Props = {
    * Extra buttons that will be shown in the context menu when user clicks on a Node.
    */
   getExtraContextMenuButtons?: GetExtraContextMenuButtonsFunction;
+  showCopyFunction?: boolean;
 
   /**
    * If true the flamegraph will be rendered on top of the table.
@@ -95,6 +96,7 @@ const FlameGraphContainer = ({
   disableCollapsing,
   keepFocusOnDataChange,
   getExtraContextMenuButtons,
+  showCopyFunction,
   tableDensity = 'compact',
 }: Props) => {
   const [focusedItemData, setFocusedItemData] = useState<ClickedItemData>();
@@ -275,6 +277,7 @@ const FlameGraphContainer = ({
       showFlameGraphOnly={showFlameGraphOnly}
       collapsing={!disableCollapsing}
       getExtraContextMenuButtons={getExtraContextMenuButtons}
+      showCopyFunction={showCopyFunction}
       selectedView={selectedView}
       search={search}
       collapsedMap={collapsedMap}

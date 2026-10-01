@@ -44,6 +44,7 @@ type Props = {
   onExpandAllGroups: () => void;
   onCollapseAllGroups: () => void;
   getExtraContextMenuButtons?: GetExtraContextMenuButtonsFunction;
+  showCopyFunction?: boolean;
   collapseConfig?: CollapseConfig;
   collapsing?: boolean;
   allGroupsCollapsed?: boolean;
@@ -64,6 +65,7 @@ const FlameGraphContextMenu = ({
   onExpandAllGroups,
   onCollapseAllGroups,
   getExtraContextMenuButtons,
+  showCopyFunction = true,
   collapsing,
   allGroupsExpanded,
   allGroupsCollapsed,
@@ -92,22 +94,24 @@ const FlameGraphContextMenu = ({
           onMenuItemClick();
         }}
       />
-      <MenuItem
-        label="Copy function and location"
-        icon="copy"
-        onClick={() => {
-          const source = data.getSource(itemData.item.itemIndexes);
-          navigator.clipboard
-            .writeText(formatClipboardText(itemData.label, source))
-            .then(() => {
-              onMenuItemClick();
-            })
-            .catch((err) => {
-              console.warn('Failed to copy function and location', err);
-              onMenuItemClick();
-            });
-        }}
-      />
+      {showCopyFunction && (
+        <MenuItem
+          label="Copy function and location"
+          icon="copy"
+          onClick={() => {
+            const source = data.getSource(itemData.item.itemIndexes);
+            navigator.clipboard
+              .writeText(formatClipboardText(itemData.label, source))
+              .then(() => {
+                onMenuItemClick();
+              })
+              .catch((err) => {
+                console.warn('Failed to copy function and location', err);
+                onMenuItemClick();
+              });
+          }}
+        />
+      )}
       <MenuItem
         label="Sandwich view"
         icon="sandwich"

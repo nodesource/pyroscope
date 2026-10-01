@@ -22,6 +22,7 @@ export type {
 export function Pyroscope({
   data,
   isContinuousProfileView = false,
+  showCopyFunction = true,
   onFrameDetails,
 }: PyroscopeProps) {
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
@@ -55,6 +56,7 @@ export function Pyroscope({
             keepFocusOnDataChange={isContinuousProfileView}
             tableDensity="comfortable"
             getExtraContextMenuButtons={getExtraContextMenuButtons}
+            showCopyFunction={showCopyFunction}
           />
         ) : (
           <div className="ns-pyroscope-empty" role="status">

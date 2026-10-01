@@ -2,6 +2,16 @@ import { test, expect, type Page } from '@playwright/test';
 
 async function openFrame(page: Page, level: number, fraction: number) {
   const canvas = page.locator('.fg-canvas-wrapper canvas').first();
+  // ResizeObserver sizes the canvas after view changes. Visibility alone can
+  // precede a non-zero width, causing coordinate clicks to select another branch.
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const width = element.parentElement?.clientWidth ?? 0;
+        return width > 0 && element.clientWidth === width;
+      }),
+    )
+    .toBe(true);
   const bounds = await canvas.boundingBox();
   if (!bounds) throw new Error('Missing flamegraph canvas bounds');
   await page.mouse.click(
@@ -53,6 +63,11 @@ test('a repeated function keeps its complete stack after focusing its parent', a
   await expect(
     page.getByRole('button', { name: 'Remove focus' }),
   ).toBeVisible();
+  await expect(
+    page.locator('.fg-metadata-pill-group', {
+      has: page.getByRole('button', { name: 'Remove focus' }),
+    }),
+  ).toHaveAttribute('title', 'entry B');
   await openFrame(page, 2, 0.2);
   await page
     .getByRole('menuitem', { name: 'Function details', exact: true })

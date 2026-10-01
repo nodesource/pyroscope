@@ -3,6 +3,12 @@
 `Pyroscope` renders a `FlamebearerProfile`. Import the package stylesheet with
 `@ns-private/pyroscope/style.css` alongside the component.
 
+`showCopyFunction?: boolean` controls the frame menu's copy action and defaults to
+`true`. The console passes `showCopyFunction={!isEbpfProfile}` to keep copying in
+the Function details modal for eBPF while preserving the menu action for normal
+CPU profiles. This setting works independently of `onFrameDetails`, including
+when details are disabled or loading.
+
 ## Function details
 
 The optional host callback adds **Function details** to the frame context menu:

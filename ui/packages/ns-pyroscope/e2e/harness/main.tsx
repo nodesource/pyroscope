@@ -124,6 +124,7 @@ export function Harness() {
         data={data}
         isContinuousProfileView={true}
         onFrameDetails={detailsEnabled ? setSelection : undefined}
+        showCopyFunction={params.has('hideCopy') ? false : undefined}
       />
     </>
   );

@@ -57,6 +57,7 @@ type Props = {
   colorScheme: ColorScheme;
   showFlameGraphOnly?: boolean;
   getExtraContextMenuButtons?: GetExtraContextMenuButtonsFunction;
+  showCopyFunction?: boolean;
   collapsing?: boolean;
   search: string;
   collapsedMap: CollapsedMap;
@@ -81,6 +82,7 @@ const FlameGraph = ({
   colorScheme,
   showFlameGraphOnly,
   getExtraContextMenuButtons,
+  showCopyFunction,
   collapsing,
   search,
   collapsedMap,
@@ -134,6 +136,7 @@ const FlameGraph = ({
     collapsedMap,
     setCollapsedMap,
     getExtraContextMenuButtons,
+    showCopyFunction,
     collapsing,
     search,
     selectedView,
